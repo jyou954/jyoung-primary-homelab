@@ -26,11 +26,11 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [x] #2 Camera VLAN: `security_vlan_in` (default drop; Blue Iris `10.0.60.2` may reach IoT camera `10.0.40.10` 80/554 and internet; cameras nothing) + `security_vlan_local` (DNS/DHCP/NTP/ping). Verified 2026-09-27.
 - [x] #3 Guest VLAN: `guest_in` (home networks rejected) + `guest_local` (DNS/DHCP/NTP/ping)
 - [x] #4 Router admin: `admin_protect_local` drops TCP 22/80/443 to the router from VLANs 51–54, 70, 100; older ciphers off
-- [ ] Optional: attach `admin_protect_local` (local) to `eth1`, `eth2` too
-- [ ] Optional: delete `WAN_IN` rules 10/20 ("Block Web", now redundant). Keep the rest of `WAN_IN`!
+- [x] Deleted `WAN_IN` rules 10/20 ("Block Web"); `WAN_IN` keeps established/related, drop invalid, default drop
+- `eth1`/`eth2` deliberately left out of `admin_protect_local` (physical-only access)
 - [ ] If Blue Iris loses the IoT camera: check `security_vlan_in` rule "Blue Iris to IoT camera" counter (unused until Blue Iris reconnects)
 - [ ] #5 Move IoT gear off the main LAN: Meross plug, HF-LPT230, FoxESS inverter, 2 Chromecasts, Hue bridge, UPS card (+ mDNS repeater for casting). Also move camera `10.0.40.10` from IoT to the camera VLAN (then update the Blue Iris rule).
-- [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). NAT rule 1 `dns-redirect-VLAN50` pointing at it is **disabled** (leftover). Delete it: Firewall/NAT → NAT.
+- [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). Leftover NAT rule 1 `dns-redirect-VLAN50` that pointed at it is deleted.
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`
 - [ ] Optional: let IoT resolve `*.int.jyoung-primary.com` (`set service dns forwarding options server=/int.jyoung-primary.com/10.0.3.11`)
 

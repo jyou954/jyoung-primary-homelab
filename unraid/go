@@ -1,0 +1,6 @@
+#!/bin/bash
+# Start the Management Utility
+/usr/local/sbin/emhttp 
+
+# Copy logrotate configs
+cp /boot/config/logrotate.d/userscripts /etc/logrotate.d/userscripts

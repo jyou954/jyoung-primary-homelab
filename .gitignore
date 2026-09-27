@@ -1,0 +1,3 @@
+unraid/nut/upsmon.conf
+unraid/nut/upsd.users
+*.env

@@ -1,0 +1,11 @@
+/var/log/synology_weekly_backup.log
+/var/log/truenas_weekly_backup.log
+/var/log/restic_daily_backup.log
+/var/log/delete_ds_store.log {
+    weekly
+    rotate 12
+    compress
+    missingok
+    notifempty
+    copytruncate
+}

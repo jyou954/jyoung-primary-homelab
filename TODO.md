@@ -45,6 +45,12 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`. Its key has **no `from=` limit** (EdgeOS rejects quotes), so don't leave it longer than needed.
 - [ ] Optional: let IoT resolve `*.int.jyoung-primary.com` (`set service dns forwarding options server=/int.jyoung-primary.com/10.0.3.11`)
 
+## Switches (see `network/switch-ports.md`)
+- [x] Port names set and saved on `jy-nw-es16` and `jy-nw-es48` (2026-09-28)
+- [ ] es48 **0/35 ↔ 0/39 loop**: find what connects them (cable, small switch or bridged PC) and remove it; then name 0/35/0/39
+- [ ] es48 **0/43 "PC - Intel i9" at 10 Mbps** and **0/8 "Proxmox 03" at 100 Mbps**: reseat or replace cables
+- [ ] Remove switch user `claude` when done (password-only account): `configure`, `no username claude`, `exit`, `write memory` on both
+
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)
 - [ ] Unplug the ConBee II if unused

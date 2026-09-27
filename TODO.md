@@ -29,7 +29,18 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [x] Deleted `WAN_IN` rules 10/20 ("Block Web"); `WAN_IN` keeps established/related, drop invalid, default drop
 - `eth1`/`eth2` deliberately left out of `admin_protect_local` (physical-only access)
 - [ ] If Blue Iris loses the IoT camera: check `security_vlan_in` rule "Blue Iris to IoT camera" counter (unused until Blue Iris reconnects)
-- [ ] #5 Move IoT gear off the main LAN: Meross plug, HF-LPT230, FoxESS inverter, 2 Chromecasts, Hue bridge, UPS card (+ mDNS repeater for casting). Also move camera `10.0.40.10` from IoT to the camera VLAN (then update the Blue Iris rule).
+- [ ] #5 Move IoT gear off the main LAN. One device at a time; check it works in its app before the next.
+  - [x] mDNS repeater `eth3` ↔ `eth3.40` (phones on main LAN can still discover casts/Hue on IoT)
+  - Wi-Fi devices → reconnect to the IoT Wi-Fi (2.4 GHz):
+    - [ ] Meross plug `10.0.3.5` (reset: hold button ~5 s, re-add in Meross app)
+    - [ ] Meross garage opener `10.0.3.17` (same; may fix HA's broken garage entities)
+    - [ ] FoxESS inverter dongle `10.0.3.201` (FoxCloud app → Wi-Fi configuration; HA uses the cloud, unaffected)
+    - [ ] Chromecast `10.0.3.16`, Chromecast Ultra `10.0.3.252` (Google Home app → Wi-Fi → Forget → set up again)
+    - [ ] Unknown HF-LPT230 Wi-Fi module `10.0.3.226` (MAC `e8:fd:f8…`): identify via http://10.0.3.226 (often admin/admin)
+  - Wired devices → EdgeSwitch port VLAN untagged + PVID:
+    - [ ] Hue bridge `10.0.3.60` → VLAN 40. First reserve `10.0.40.60` (router DHCP IoT static mapping, MAC `00:17:88:2d:7b:2e`). After: check HA Hue integration, delete `BLOCK_IN` "Allow Hue Hub".
+    - [ ] CyberPower UPS card `10.0.3.15` → Management VLAN 50 (optional)
+    - [ ] Camera `10.0.40.10` → camera VLAN 60: reserve a `10.0.60.x`, update IP in Blue Iris, delete `security_vlan_in` "Blue Iris to IoT camera"
 - [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). Leftover NAT rule 1 `dns-redirect-VLAN50` that pointed at it is deleted.
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`
 - [ ] Optional: let IoT resolve `*.int.jyoung-primary.com` (`set service dns forwarding options server=/int.jyoung-primary.com/10.0.3.11`)

@@ -1,0 +1,27 @@
+name: homepage
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    networks:
+      - frontend
+    env_file:
+      - /mnt/user/system/secrets/homepage.env
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: homepage.int.jyoung-primary.com
+    volumes:
+      - /mnt/user/appdata/homepage:/app/config
+      - /mnt/user/appdata/homepage/icons:/app/public/icons
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`homepage.int.jyoung-primary.com`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.tls=true"
+      - "traefik.http.routers.homepage.tls.certresolver=stepca"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+
+networks:
+  frontend:
+    external: true

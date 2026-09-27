@@ -1,0 +1,12 @@
+services:
+  bws-render:
+    build: .
+    container_name: bws-render
+    restart: "no"
+    environment:
+      BWS_ACCESS_TOKEN_FILE: /run/secrets/access_token
+    volumes:
+      - /mnt/user/appdata/bws/access-token:/run/secrets/access_token:ro
+      - /mnt/user/system/secrets:/output
+      - ./render.sh:/render.sh:ro
+    entrypoint: ["sh", "/render.sh"]

@@ -1,0 +1,60 @@
+name: monitoring
+
+services:
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    networks:
+      - frontend
+      - monitoring_internal
+    env_file:
+      - /mnt/user/system/secrets/grafana.env
+    environment:
+      - GF_SERVER_ROOT_URL=https://grafana.int.jyoung-primary.com/
+      - GF_PLUGINS_PREINSTALL=grafana-clock-panel
+    volumes:
+      - /mnt/user/appdata/grafana:/var/lib/grafana
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.int.jyoung-primary.com`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=stepca"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    networks:
+      - frontend
+      - monitoring_internal
+    volumes:
+      - /mnt/user/appdata/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /mnt/user/appdata/prometheus/data:/prometheus
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.int.jyoung-primary.com`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.tls.certresolver=stepca"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    network_mode: host
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+    volumes:
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+
+networks:
+  frontend:
+    external: true
+  monitoring_internal:
+    internal: true

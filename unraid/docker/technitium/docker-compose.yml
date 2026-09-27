@@ -1,0 +1,38 @@
+services:
+  unraid-technitium:
+    image: technitium/dns-server:latest
+    container_name: unraid-technitium
+    hostname: unraid-technitium.int.jyoung-primary.com
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+    ports:
+      - "5380:5380/tcp"
+      - "53443:53443/tcp"
+      - "10.0.3.11:53:53/udp"
+      - "10.0.3.11:53:53/tcp"
+    env_file:
+      - /mnt/user/system/secrets/technitium.env
+    environment:
+      - DNS_SERVER_DOMAIN=unraid-technitium.int.jyoung-primary.com
+      - DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS=true
+      - DNS_SERVER_WEB_SERVICE_HTTP_TO_TLS_REDIRECT=true
+      - DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PATH=/etc/dns/tls/cert.pfx
+    volumes:
+      - /mnt/user/appdata/technitium/config:/etc/dns
+      - /mnt/user/appdata/technitium/certs/root_ca.crt:/usr/local/share/ca-certificates/root_ca.crt:ro
+    entrypoint: ["/bin/sh", "-c", "update-ca-certificates && exec /usr/bin/dotnet /opt/technitium/dns/DnsServerApp.dll /etc/dns"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.unraid-technitium.rule=Host(`unraid-technitium.int.jyoung-primary.com`)"
+      - "traefik.http.routers.unraid-technitium.entrypoints=websecure"
+      - "traefik.http.routers.unraid-technitium.service=unraid-technitium-svc"
+      - "traefik.http.routers.unraid-technitium.tls=true"
+      - "traefik.http.routers.unraid-technitium.tls.certresolver=stepca"
+      - "traefik.http.services.unraid-technitium-svc.loadbalancer.server.port=5380"
+
+networks:
+  frontend:
+    external: true

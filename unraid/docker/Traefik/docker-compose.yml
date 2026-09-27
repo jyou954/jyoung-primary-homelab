@@ -1,0 +1,140 @@
+name: traefik
+
+services:
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: socket-proxy-traefik
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run
+    networks:
+      - socket_proxy
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1
+      - SERVICES=1
+      - TASKS=1
+      - POST=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  traefik-01:
+    image: traefik:v3.6
+    container_name: unraid-traefik
+    restart: unless-stopped
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - socket_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    dns:
+      - 10.0.3.11
+    command:
+      # Global
+      - "--global.checkNewVersion=true"
+      - "--global.sendAnonymousUsage=false"
+      # Logging
+      - "--log.level=DEBUG"
+      - "--accesslog.filepath=/var/logs/access.log"
+      - "--accesslog.format=common"
+      - "--accesslog.bufferingsize=50"
+      - "--accesslog.filters.statuscodes=200,400-599"
+      - "--accesslog.fields.headers.defaultmode=drop"
+      - "--accesslog.fields.headers.names.User-Agent=keep"
+      # API/Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls.certresolver=stepca"
+      - "--entrypoints.websecure.http.tls.domains[0].main=int.jyoung-primary.com"
+      #- "--entrypoints.websecure.http.tls.domains[0].sans=*.int.jyoung-primary.com"
+      # File provider (dynamic config)
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      # Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--providers.docker.defaultrule=Host(`{{ index .Labels \"com.docker.compose.service\"}}.int.jyoung-primary.com`)"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=frontend"
+      # Step CA cert resolver
+      - "--certificatesresolvers.stepca.acme.email=young.aze+smallstep@gmail.com"
+      - "--certificatesresolvers.stepca.acme.caserver=https://unraid-int-ca.int.jyoung-primary.com/acme/acme/directory"
+      - "--certificatesresolvers.stepca.acme.cacertificates=/certs/root_ca.crt"
+      - "--certificatesresolvers.stepca.acme.storage=/etc/traefik/step-acme.json"
+      - "--certificatesresolvers.stepca.acme.certificatesduration=24"
+      - "--certificatesresolvers.stepca.acme.dnschallenge.provider=technitium"
+      - "--certificatesresolvers.stepca.acme.dnschallenge.resolvers=10.0.3.11:53"
+      - "--certificatesresolvers.stepca.acme.dnschallenge.propagation.delayBeforeChecks=30"
+      - "--certificatesresolvers.stepca.acme.dnschallenge.propagation.disableChecks=true"
+      # Let's Encrypt cert resolver
+      - "--certificatesresolvers.letsencrypt.acme.email=young.aze@hotmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/cf-acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=8.8.8.8:53,1.1.1.1:53"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.propagation.delayBeforeChecks=30"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.propagation.disableChecks=true"
+      # Metrics
+      - "--metrics.prometheus=true"
+    labels:
+      - "traefik.enable=true"
+      # Dashboard router
+      - "traefik.http.routers.dashboard.rule=Host(`unraid-traefik.int.jyoung-primary.com`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=stepca"
+      # Basic-auth middleware (file mounted from bws-render output)
+      - "traefik.http.middlewares.dashboard-auth.basicauth.usersFile=/run/secrets/dashboard-htpasswd"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
+    env_file:
+      - /mnt/user/system/secrets/traefik.env
+    environment:
+      - TECHNITIUM_SERVER_BASE_URL=http://unraid-technitium.int.jyoung-primary.com:5380
+      - TZ=Australia/Sydney
+    tmpfs:
+      - /run/secrets
+    volumes:
+      - /mnt/user/appdata/traefik/certs:/certs:ro
+      - /mnt/user/appdata/traefik/step-acme.json:/etc/traefik/step-acme.json
+      - /mnt/user/appdata/traefik/cf-acme.json:/etc/traefik/cf-acme.json
+      - /mnt/user/appdata/traefik/dynamic:/etc/traefik/dynamic:ro
+      - /mnt/user/appdata/traefik/certs/root_ca.crt:/usr/local/share/ca-certificates/root_ca.crt:ro
+      - /mnt/user/appdata/traefik/start.sh:/start.sh:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        printf '%s\n' "$$DASHBOARD_AUTH_USERS" > /run/secrets/dashboard-htpasswd
+        chmod 600 /run/secrets/dashboard-htpasswd
+        exec /bin/sh /start.sh "$$@"
+      - sh
+  # whoami:
+  #   image: traefik/whoami
+  #   container_name: unraid-whoami
+  #   restart: unless-stopped
+  #   networks:
+  #     - frontend
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.whoami.rule=Host(`unraid-whoami.int.jyoung-primary.com`)"
+  #     - "traefik.http.routers.whoami.entrypoints=websecure"
+  #     - "traefik.http.routers.whoami.tls=true"
+  #     - "traefik.http.routers.whoami.tls.certresolver=stepca"
+
+networks:
+  frontend:
+    external: true
+  socket_proxy:
+    internal: true

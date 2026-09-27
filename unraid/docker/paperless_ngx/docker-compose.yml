@@ -1,0 +1,86 @@
+name: paperless
+
+services:
+  paperless-server:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless-server
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - paperless_internal
+    depends_on:
+      - paperless-postgresql
+      - paperless-redis
+      - paperless-gotenberg
+      - paperless-tika
+    env_file:
+      - /mnt/user/system/secrets/paperless.env
+    environment:
+      - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_DBHOST=paperless-postgresql
+      - PAPERLESS_TIKA_ENABLED=1
+      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000
+      - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
+      - PAPERLESS_URL=https://paperless.int.jyoung-primary.com
+      - PAPERLESS_CSRF_TRUSTED_ORIGINS=https://paperless.int.jyoung-primary.com
+    volumes:
+      - /mnt/user/appdata/paperless-ngx/data:/usr/src/paperless/data
+      - /mnt/user/docker-data/paperless-ngx/media:/usr/src/paperless/media
+      - /mnt/user/docker-data/paperless-ngx/export:/usr/src/paperless/export
+      - /mnt/user/docker-data/paperless-ngx/consume:/usr/src/paperless/consume
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.paperless.rule=Host(`paperless.int.jyoung-primary.com`)"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+      - "traefik.http.routers.paperless.tls=true"
+      - "traefik.http.routers.paperless.tls.certresolver=stepca"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+
+  paperless-postgresql:
+    image: docker.io/library/postgres:18
+    container_name: paperless-postgresql
+    restart: unless-stopped
+    networks:
+      - paperless_internal
+    env_file:
+      - /mnt/user/system/secrets/paperless.env
+    environment:
+      - POSTGRES_DB=paperless
+      - POSTGRES_USER=paperless
+    volumes:
+      - /mnt/user/appdata/paperless-ngx/pgdata:/var/lib/postgresql
+
+  paperless-redis:
+    image: docker.io/library/redis:8
+    container_name: paperless-redis
+    restart: unless-stopped
+    networks:
+      - paperless_internal
+    volumes:
+      - /mnt/user/appdata/paperless-ngx/redisdata:/data
+
+  paperless-gotenberg:
+    image: docker.io/gotenberg/gotenberg:8.25
+    container_name: paperless-gotenberg
+    restart: unless-stopped
+    networks:
+      - paperless_internal
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+
+  paperless-tika:
+    image: docker.io/apache/tika:latest
+    container_name: paperless-tika
+    restart: unless-stopped
+    networks:
+      - paperless_internal
+
+networks:
+  frontend:
+    external: true
+  paperless_internal:
+    internal: true

@@ -1,0 +1,56 @@
+name: bookstack
+
+services:
+  bookstack-server:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: bookstack-server
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - bookstack_internal
+    depends_on:
+      - bookstack-mariadb
+    env_file:
+      - /mnt/user/system/secrets/bookstack.env
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+      - APP_URL=https://bookstack.int.jyoung-primary.com
+      - DB_HOST=bookstack-mariadb
+      - DB_PORT=3306
+      - DB_USERNAME=bookstack
+      - DB_DATABASE=bookstack
+    volumes:
+      - /mnt/user/appdata/bookstack/config:/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bookstack.rule=Host(`bookstack.int.jyoung-primary.com`)"
+      - "traefik.http.routers.bookstack.entrypoints=websecure"
+      - "traefik.http.routers.bookstack.tls=true"
+      - "traefik.http.routers.bookstack.tls.certresolver=stepca"
+
+  bookstack-mariadb:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: bookstack-mariadb
+    restart: unless-stopped
+    networks:
+      - bookstack_internal
+    env_file:
+      - /mnt/user/system/secrets/bookstack.env
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+      - MYSQL_DATABASE=bookstack
+      - MYSQL_USER=bookstack
+    volumes:
+      - /mnt/user/appdata/bookstack/mariadb:/config
+
+networks:
+  frontend:
+    external: true
+  bookstack_internal:
+    internal: true

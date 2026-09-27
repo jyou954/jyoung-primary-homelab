@@ -1,0 +1,146 @@
+name: authentik
+
+services:
+  authentik-socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: socket-proxy-authentik
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run
+    networks:
+      - authentik_socket_proxy
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - SERVICES=1
+      - TASKS=1
+      - INFO=1
+      - VERSION=1
+      - EXEC=1
+      - POST=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  authentik-postgresql:
+    image: docker.io/library/postgres:16-alpine
+    container_name: authentik-postgresql
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - authentik_internal
+    env_file:
+      - /mnt/user/system/secrets/authentik.env
+    environment:
+      - TZ=Australia/Sydney
+      - POSTGRES_DB=authentik
+      - POSTGRES_USER=authentik
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - /mnt/user/appdata/authentik/postgresql:/var/lib/postgresql/data
+
+  authentik-redis:
+    image: docker.io/library/redis:alpine
+    container_name: authentik-redis
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - authentik_internal
+    command: --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - /mnt/user/appdata/authentik/redis:/data
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2026.2.2
+    container_name: authentik-server
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command: server
+    depends_on:
+      authentik-postgresql:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    networks:
+      - frontend
+      - authentik_internal
+    env_file:
+      - /mnt/user/system/secrets/authentik.env
+    environment:
+      - TZ=Australia/Sydney
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+    healthcheck:
+      test: ["CMD", "ak", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - /mnt/user/appdata/authentik/data:/data
+      - /mnt/user/appdata/authentik/custom-templates:/templates
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentik.rule=Host(`authentik.int.jyoung-primary.com`)"
+      - "traefik.http.routers.authentik.entrypoints=websecure"
+      - "traefik.http.routers.authentik.tls=true"
+      - "traefik.http.routers.authentik.tls.certresolver=stepca"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2026.2.2
+    container_name: authentik-worker
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command: worker
+    depends_on:
+      authentik-postgresql:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
+      authentik-socket-proxy:
+        condition: service_started
+    networks:
+      - authentik_internal
+      - authentik_socket_proxy
+    env_file:
+      - /mnt/user/system/secrets/authentik.env
+    environment:
+      - TZ=Australia/Sydney
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - DOCKER_HOST=tcp://authentik-socket-proxy:2375
+    volumes:
+      - /mnt/user/appdata/authentik/data:/data
+      - /mnt/user/appdata/authentik/certs:/certs
+      - /mnt/user/appdata/authentik/custom-templates:/templates
+
+networks:
+  frontend:
+    external: true
+  authentik_internal:
+    internal: true
+  authentik_socket_proxy:
+    internal: true

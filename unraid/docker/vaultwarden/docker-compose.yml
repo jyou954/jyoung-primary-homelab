@@ -1,0 +1,30 @@
+name: secrets
+
+services:
+  vaultwarden:
+    image: docker.io/vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    networks:
+      - frontend
+    environment:
+      DOMAIN: "https://vw.int.jyoung-primary.com"
+    volumes:
+      - /mnt/user/appdata/vaultwarden/data/:/data/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vw.int.jyoung-primary.com`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.service=vaultwarden-svc"
+      - "traefik.http.routers.vaultwarden.tls=true"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=stepca"
+      - "traefik.http.services.vaultwarden-svc.loadbalancer.server.port=80"
+      - "homepage.group=Security"
+      - "homepage.name=Vaultwarden"
+      - "homepage.icon=vaultwarden.png"
+      - "homepage.href=https://vw.int.jyoung-primary.com"
+      - "homepage.description=Password manager"
+
+networks:
+  frontend:
+    external: true

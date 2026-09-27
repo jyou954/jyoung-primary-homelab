@@ -1,0 +1,58 @@
+name: semaphore
+
+services:
+  semaphore-server:
+    image: semaphoreui/semaphore:v2.17.26
+    container_name: semaphore-server
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - semaphore_internal
+    depends_on:
+      - semaphore-postgresql
+    env_file:
+      - /mnt/user/system/secrets/semaphore.env
+    environment:
+      - SEMAPHORE_DB_DIALECT=postgres
+      - SEMAPHORE_DB_HOST=semaphore-postgresql
+      - SEMAPHORE_DB_PORT=5432
+      - SEMAPHORE_DB_NAME=semaphore
+      - SEMAPHORE_DB_USER=semaphore
+      - SEMAPHORE_PLAYBOOK_PATH=/tmp/semaphore/
+      - SEMAPHORE_ADMIN=overlord
+      - SEMAPHORE_ADMIN_NAME="Overlord"
+      - SEMAPHORE_ADMIN_EMAIL=young.aze+semaphore@gmail.com
+      - SEMAPHORE_USE_REMOTE_RUNNER=true
+      - TZ=Australia/Sydney
+      - ANSIBLE_HOST_KEY_CHECKING=True
+    volumes:
+      - /mnt/user/appdata/semaphore/requirements.txt:/etc/semaphore/requirements.txt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.semaphore.rule=Host(`semaphore.int.jyoung-primary.com`)"
+      - "traefik.http.routers.semaphore.entrypoints=websecure"
+      - "traefik.http.routers.semaphore.tls=true"
+      - "traefik.http.routers.semaphore.tls.certresolver=stepca"
+      - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
+
+  semaphore-postgresql:
+    image: docker.io/library/postgres:latest
+    container_name: semaphore-postgresql
+    restart: unless-stopped
+    networks:
+      - semaphore_internal
+    env_file:
+      - /mnt/user/system/secrets/semaphore.env
+    environment:
+      - POSTGRES_DB=semaphore
+      - POSTGRES_USER=semaphore
+    volumes:
+      - /mnt/user/appdata/semaphore/pgdata:/var/lib/mysql
+
+networks:
+  frontend:
+    external: true
+  semaphore_internal:
+    internal: true

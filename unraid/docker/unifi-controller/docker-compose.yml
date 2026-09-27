@@ -1,0 +1,35 @@
+name: unifi
+
+services:
+  unifi:
+    image: jacobalberty/unifi:latest
+    container_name: unifi
+    init: true
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+    ports:
+      - "8080:8080"         # Device communication / inform
+      - "9443:8443"         # Web admin UI
+      - "3478:3478/udp"     # STUN
+      - "10001:10001/udp"   # AP discovery (L2)
+    environment:
+      - TZ=Australia/Sydney
+      - SYSTEM_IP=10.0.3.11
+    volumes:
+      - /mnt/user/appdata/unifi/data:/unifi
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.unifi.rule=Host(`unifi.int.jyoung-primary.com`)"
+      - "traefik.http.routers.unifi.entrypoints=websecure"
+      - "traefik.http.routers.unifi.tls=true"
+      - "traefik.http.routers.unifi.tls.certresolver=stepca"
+      - "traefik.http.services.unifi.loadbalancer.server.scheme=https"
+      - "traefik.http.services.unifi.loadbalancer.server.port=8443"
+      - "traefik.http.services.unifi.loadbalancer.serverstransport=insecureTransport@file"
+
+networks:
+  frontend:
+    external: true

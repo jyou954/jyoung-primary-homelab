@@ -1,0 +1,131 @@
+- id: '1752144414825'
+  alias: Doorbell announce Google Home
+  description: 'Speaks on every Google speaker when the doorbell is pressed. Sent
+    to each speaker directly: Cast groups cut short clips off after the first syllable.
+    Audio is cached so repeat rings work offline.'
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.front_door_bell_ring
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: tts.speak
+    target:
+      entity_id: tts.google_translate_en_com
+    data:
+      media_player_entity_id:
+      - media_player.kitchen_mini
+      - media_player.kitchen_hub
+      - media_player.living_room_mini
+      - media_player.dining_room_mini
+      - media_player.front_study_speaker
+      - media_player.study_mini
+      - media_player.master_bedroom_display
+      - media_player.bedroom_hub
+      - media_player.guest_bedroom_speaker
+      - media_player.upstairs_hallway_mini
+      message: Someone is at the front door
+      cache: true
+  mode: single
+- id: notify_iphone_of_updates
+  alias: Notify iPhone of updates
+  description: One push listing all pending updates with Install all / Later. Fires
+    5 min after a new update appears (bursts collapse into one) and as a weekly reminder
+    on Sundays at 10:00. Update entities are listed explicitly; rerun ha_update_notify.py
+    after adding integrations.
+  triggers:
+  - trigger: state
+    entity_id:
+    - update.advanced_ssh_web_terminal_update
+    - update.button_card_update
+    - update.custom_brand_icons_update
+    - update.dahua_update
+    - update.foxess_cloud_update
+    - update.hacs_update
+    - update.home_assistant_connect_zbt_2_dcb4d90e8d1c_firmware
+    - update.home_assistant_core_update
+    - update.home_assistant_operating_system_update
+    - update.home_assistant_supervisor_update
+    - update.material_symbols_update
+    - update.matter_server_update
+    - update.mosquitto_broker_update
+    - update.mushroom_update
+    - update.zigbee2mqtt_update
+    from: 'off'
+    to: 'on'
+    id: new
+  - trigger: time
+    at: '10:00:00'
+    id: weekly
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.id == ''new'' or now().weekday() == 6 }}'
+  actions:
+  - if:
+    - condition: trigger
+      id: new
+    then:
+    - delay: 00:05:00
+  - condition: template
+    value_template: '{{ states.update | selectattr(''state'', ''eq'', ''on'') | list
+      | count > 0 }}'
+  - condition: state
+    entity_id: script.install_pending_updates
+    state: 'off'
+  - variables:
+      act_install: '{{ ''UPDATES_INSTALL_'' ~ context.id }}'
+      act_later: '{{ ''UPDATES_LATER_'' ~ context.id }}'
+  - action: notify.mobile_app_jareds_iphone
+    data:
+      title: '{{ states.update | selectattr(''state'', ''eq'', ''on'') | list | count
+        }} Home Assistant updates'
+      message: '{% for s in states.update | selectattr(''state'', ''eq'', ''on'')
+        %}{{ s.attributes.title or s.name }}: {{ s.attributes.installed_version }}
+        -> {{ s.attributes.latest_version }}
+
+        {% endfor %}Order: apps first, then Core (restart), then OS (reboot).'
+      data:
+        tag: ha_updates
+        actions:
+        - action: '{{ act_install }}'
+          title: Install all
+          authenticationRequired: true
+        - action: '{{ act_later }}'
+          title: Later
+  - wait_for_trigger:
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ act_install }}'
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ act_later }}'
+    timeout: '24:00:00'
+    continue_on_timeout: false
+  - condition: template
+    value_template: '{{ wait.trigger.event.data.action == act_install }}'
+  - action: script.turn_on
+    target:
+      entity_id: script.install_pending_updates
+  mode: restart
+- id: resume_updates_after_restart
+  alias: Resume updates after restart
+  description: After a Core/OS update restarts HA, continue script.install_pending_updates.
+  triggers:
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: state
+    entity_id: input_boolean.updates_resume_after_restart
+    state: 'on'
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.updates_resume_after_restart
+  - delay: 00:02:00
+  - action: script.turn_on
+    target:
+      entity_id: script.install_pending_updates
+  mode: single

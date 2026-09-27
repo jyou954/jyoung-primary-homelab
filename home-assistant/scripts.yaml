@@ -1,0 +1,116 @@
+install_pending_updates:
+  alias: Install pending updates
+  description: 'Installs every pending update in a safe order: apps/cards first, then
+    Core (HA restarts), then OS (reboots). Sets input_boolean.updates_resume_after_restart
+    before a restart so automation.resume_updates_after_restart continues the run.'
+  mode: single
+  sequence:
+  - variables:
+      others: '{{ states.update | selectattr(''state'', ''eq'', ''on'') | map(attribute=''entity_id'')
+        | reject(''in'', [''update.home_assistant_core_update'', ''update.home_assistant_operating_system_update''])
+        | list }}'
+      need_restart: '{{ others | select(''in'', integration_entities(''hacs'')) |
+        list | count > 0 }}'
+  - repeat:
+      for_each: '{{ others }}'
+      sequence:
+      - if:
+        - condition: template
+          value_template: '{{ (state_attr(repeat.item, ''supported_features'') | int(0))
+            | bitwise_and(8) > 0 }}'
+        then:
+        - action: update.install
+          target:
+            entity_id: '{{ repeat.item }}'
+          data:
+            backup: true
+          continue_on_error: true
+        else:
+        - action: update.install
+          target:
+            entity_id: '{{ repeat.item }}'
+          continue_on_error: true
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: update.home_assistant_core_update
+        state: 'on'
+      sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.updates_resume_after_restart
+      - action: notify.mobile_app_jareds_iphone
+        data:
+          title: Installing Home Assistant Core
+          message: HA will restart. Remaining updates continue automatically afterwards.
+          data:
+            tag: ha_updates
+      - if:
+        - condition: template
+          value_template: '{{ (state_attr(''update.home_assistant_core_update'', ''supported_features'')
+            | int(0)) | bitwise_and(8) > 0 }}'
+        then:
+        - action: update.install
+          target:
+            entity_id: '{{ ''update.home_assistant_core_update'' }}'
+          data:
+            backup: true
+          continue_on_error: true
+        else:
+        - action: update.install
+          target:
+            entity_id: '{{ ''update.home_assistant_core_update'' }}'
+          continue_on_error: true
+    - conditions:
+      - condition: state
+        entity_id: update.home_assistant_operating_system_update
+        state: 'on'
+      sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.updates_resume_after_restart
+      - action: notify.mobile_app_jareds_iphone
+        data:
+          title: Installing Home Assistant OS
+          message: HA will reboot for a few minutes.
+          data:
+            tag: ha_updates
+      - if:
+        - condition: template
+          value_template: '{{ (state_attr(''update.home_assistant_operating_system_update'',
+            ''supported_features'') | int(0)) | bitwise_and(8) > 0 }}'
+        then:
+        - action: update.install
+          target:
+            entity_id: '{{ ''update.home_assistant_operating_system_update'' }}'
+          data:
+            backup: true
+          continue_on_error: true
+        else:
+        - action: update.install
+          target:
+            entity_id: '{{ ''update.home_assistant_operating_system_update'' }}'
+          continue_on_error: true
+    default:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.updates_resume_after_restart
+    - action: notify.mobile_app_jareds_iphone
+      data:
+        title: Updates finished
+        message: '{% set left = states.update | selectattr(''state'', ''eq'', ''on'')
+          | map(attribute=''name'') | list %}{{ ''All updates installed.'' if not
+          left else ''Still pending (install failed?): '' ~ left | join('', '') }}'
+        data:
+          tag: ha_updates
+    - if:
+      - condition: template
+        value_template: '{{ need_restart }}'
+      then:
+      - action: notify.mobile_app_jareds_iphone
+        data:
+          title: Restarting Home Assistant
+          message: Loading the updated custom integrations. Back in about a minute.
+          data:
+            tag: ha_updates
+      - action: homeassistant.restart

@@ -6,6 +6,9 @@ Config for the homelab, versioned. **The servers are the source of truth** — t
 |---|---|---|
 | [`unraid/`](unraid/README.md) | Unraid `10.0.3.11` | User scripts, NUT (UPS), logrotate, boot `go` file, Docker compose stacks |
 | [`synology/`](synology/README.md) | Synology `10.0.3.13` | Backup target layout and retention, rotation task |
+| [`home-assistant/`](home-assistant/README.md) | HA `10.0.40.7` | Dashboard builder, update notifications, entity renames, automations snapshot |
+
+Open work: [`TODO.md`](TODO.md).
 
 ## Rules
 - **No secrets in git.** Passwords live in Bitwarden Secrets Manager. `*.env`, `upsd.users`, `upsmon.conf` are gitignored.

@@ -34,7 +34,7 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)
 - [ ] Unplug the ConBee II if unused
-- [ ] Save the dashboard / rename / update-flow scripts into this repo (`home-assistant/`)
+- [x] Save the dashboard / rename / update-flow scripts into this repo (`home-assistant/`)
 
 ## Parked
 - TrueNAS backup (share not mounted) and restic (disabled)

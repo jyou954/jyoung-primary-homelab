@@ -42,13 +42,24 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
     - [ ] CyberPower UPS card `10.0.3.15` → Management VLAN 50 (optional)
     - [ ] Camera `10.0.40.10` → camera VLAN 60: reserve a `10.0.60.x`, update IP in Blue Iris, delete `security_vlan_in` "Blue Iris to IoT camera"
 - [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). Leftover NAT rule 1 `dns-redirect-VLAN50` that pointed at it is deleted.
-- [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`
+- [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`. Its key has **no `from=` limit** (EdgeOS rejects quotes), so don't leave it longer than needed.
 - [ ] Optional: let IoT resolve `*.int.jyoung-primary.com` (`set service dns forwarding options server=/int.jyoung-primary.com/10.0.3.11`)
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)
 - [ ] Unplug the ConBee II if unused
 - [x] Save the dashboard / rename / update-flow scripts into this repo (`home-assistant/`)
+
+- [ ] Tablet: kiosk start page by IP (`http://10.0.40.7:8123/tablet-home/home`) so it survives Technitium outages
+- [ ] Tablet: hide Overview in the `younghome` sidebar; kiosk app "reload start URL on idle" (optional: HACS `kiosk-mode` to hide the header)
+- [ ] Save the HA backup encryption key in Vaultwarden (Settings → System → Backups → Settings → Encryption key)
+
+## Housekeeping
+- [ ] After the next Unraid reboot: check NUT came up (`upsc -c ups@127.0.0.1` lists `127.0.0.1`)
+- [ ] After the watcher finishes: delete `/root/install_waiter.sh` on Unraid
+- [ ] Set git identity on the PC: `git config --global user.name "jyoung"` and `user.email`
+- Note: git on this PC uses Windows OpenSSH (`git config --global core.sshCommand`), needed for the `overlord_ed25519` key
+- [ ] `claude_ed25519` key expires on Unraid, Synology and HA on **2026-12-31** (`expiry-time`). Renew or remove the `authorized_keys` lines before then.
 
 ## Parked
 - TrueNAS backup (share not mounted) and restic (disabled)

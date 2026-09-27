@@ -30,7 +30,7 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [ ] Optional: delete `WAN_IN` rules 10/20 ("Block Web", now redundant). Keep the rest of `WAN_IN`!
 - [ ] If Blue Iris loses the IoT camera: check `security_vlan_in` rule "Blue Iris to IoT camera" counter (unused until Blue Iris reconnects)
 - [ ] #5 Move IoT gear off the main LAN: Meross plug, HF-LPT230, FoxESS inverter, 2 Chromecasts, Hue bridge, UPS card (+ mDNS repeater for casting). Also move camera `10.0.40.10` from IoT to the camera VLAN (then update the Blue Iris rule).
-- [ ] #6 Identify `10.0.3.5`: NAT rule 1 redirects main-LAN DNS to it
+- [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). NAT rule 1 `dns-redirect-VLAN50` pointing at it is **disabled** (leftover). Delete it: Firewall/NAT → NAT.
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`
 - [ ] Optional: let IoT resolve `*.int.jyoung-primary.com` (`set service dns forwarding options server=/int.jyoung-primary.com/10.0.3.11`)
 

@@ -1,8 +1,9 @@
 - id: '1752144414825'
   alias: Doorbell announce Google Home
-  description: 'Speaks on every Google speaker when the doorbell is pressed. Sent
-    to each speaker directly: Cast groups cut short clips off after the first syllable.
-    Audio is cached so repeat rings work offline.'
+  description: 'Doorbell pressed: every speaker to 100%, say ''Someone is at the front
+    door'' on each speaker individually (Cast groups cut short clips off), then restore
+    each speaker''s previous volume (50% if it was off and had none). Audio is cached
+    so repeat rings work offline.'
   triggers:
   - trigger: state
     entity_id: binary_sensor.front_door_bell_ring
@@ -10,11 +11,8 @@
     to: 'on'
   conditions: []
   actions:
-  - action: tts.speak
-    target:
-      entity_id: tts.google_translate_en_com
-    data:
-      media_player_entity_id:
+  - variables:
+      speakers:
       - media_player.kitchen_mini
       - media_player.kitchen_hub
       - media_player.living_room_mini
@@ -25,8 +23,32 @@
       - media_player.bedroom_hub
       - media_player.guest_bedroom_speaker
       - media_player.upstairs_hallway_mini
+      previous: '{% set ns = namespace(items=[]) %}{% for e in speakers %}{% set v
+        = state_attr(e, ''volume_level'') %}{% set ns.items = ns.items + [[e, v if
+        v is number else 0.5]] %}{% endfor %}{{ ns.items }}'
+  - action: media_player.volume_set
+    target:
+      entity_id: '{{ speakers }}'
+    data:
+      volume_level: 1.0
+    continue_on_error: true
+  - action: tts.speak
+    target:
+      entity_id: tts.google_translate_en_com
+    data:
+      media_player_entity_id: '{{ speakers }}'
       message: Someone is at the front door
       cache: true
+  - delay: 00:00:07
+  - repeat:
+      for_each: '{{ previous }}'
+      sequence:
+      - action: media_player.volume_set
+        target:
+          entity_id: '{{ repeat.item[0] }}'
+        data:
+          volume_level: '{{ repeat.item[1] }}'
+        continue_on_error: true
   mode: single
 - id: notify_iphone_of_updates
   alias: Notify iPhone of updates

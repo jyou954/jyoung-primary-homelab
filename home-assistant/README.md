@@ -18,6 +18,7 @@ On Windows PowerShell use `cmd /c "ssh ... python3 - < script.py"` (PowerShell h
 |---|---|---|
 | `ha_tablet_dashboard.py` | Builds the **Tablet** dashboard (`/tablet-home`) and the **Overview** dashboard (plus admin-only Admin page). Checks every entity is working before saving. | `--force` (tablet) or `--target=overview` |
 | `ha_update_notify.py` | iPhone push for HA updates with **Install all / Later**; installs in a safe order (apps → Core → OS) and resumes after restarts; weekly Sunday 10:00 reminder. | no args; `--send-now` to push immediately |
+| `ha_doorbell.py` | Doorbell automation: all speakers to 100%, announce on each speaker, restore volumes (50% for speakers that were off). Saves and validates only; never rings. | no args |
 | `ha_rename.py` | Readable display names for 86 entities (entity IDs unchanged). **Already applied 2026-09-27.** | dry run by default; `--apply` |
 | `entity_names_before_2026-09-27.json` | Names before `ha_rename.py`, for undoing individual renames. | — |
 | `automations.yaml`, `scripts.yaml` | Snapshot of HA's automations and scripts (doorbell announcement, update flow). HA is the source of truth; re-export after editing in the UI. | — |

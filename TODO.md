@@ -5,7 +5,7 @@ Started 2026-09-27. Tick things off as they're done.
 ## Waiting on the Synology backup run
 The weekly backup started 2026-09-27 ~17:05 and re-copies everything (~6 TB), so it takes many hours. A watcher on Unraid (`/root/install_waiter.sh`) swaps in the new backup script when it finishes.
 
-- [ ] Check `/var/log/synology_backup_install.log` on Unraid: expect `new script installed` and a `CANARY:` line (`KEPT` = mirror mode will work).
+- [x] Backup finished 2026-09-28 19:34 (NAS 67% used). New script installed 20:28; `CANARY: file times KEPT` (mirror mode will work).
 - [x] Commit the already-edited `unraid/scripts/synology_weekly_backup.sh`, `synology/README.md`, `unraid/README.md`.
 - [x] Fix `unraid/README.md`: `/root/.ssh` is on the flash drive (`/boot/config/ssh/root`), not RAM.
 - [ ] 2026-10-04 run: copy-only, sets `.state/adopted.*` markers on the NAS.
@@ -93,7 +93,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 
 ## Housekeeping
 - [ ] After the next Unraid reboot: check NUT came up (`upsc -c ups@127.0.0.1` lists `127.0.0.1`)
-- [ ] After the watcher finishes: delete `/root/install_waiter.sh` on Unraid
+- [x] Deleted `/root/install_waiter.sh` on Unraid (watcher done)
 - [ ] Set git identity on the PC: `git config --global user.name "jyoung"` and `user.email`
 - Note: git on this PC uses Windows OpenSSH (`git config --global core.sshCommand`), needed for the `overlord_ed25519` key
 - [ ] `claude_ed25519` key expires on Unraid, Synology and HA on **2026-12-31** (`expiry-time`). Renew or remove the `authorized_keys` lines before then.

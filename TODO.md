@@ -64,6 +64,8 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 ## Docker updates (WUD, set up 2026-09-28)
 Pending updates show in HA (Settings → Updates) and in WUD. Read release notes before pressing Install on anything below.
 - [x] Immich v2 → v3.2.2 (2026-09-28). Migrations OK, 12983 assets unchanged. Pre-upgrade dump: `/mnt/user/appdata/immich/immich-db-before-v3-20260928.sql.gz`; old `.env` at `.env.bak-20260928`
+- [x] iPhone (`10.0.3.236`, "Jareds-iPhone") trusts the internal root CA (`root-ca-01 Root CA`, SHA-256 `BF:35:1A:72…00:2F:34:B5`); Immich app uses `https://immich.int.jyoung-primary.com`
+- [ ] Remote Immich/`*.int` access away from home: let Tailscale reach `10.0.3.11` only (not the whole LAN)
 - [ ] Immich: update the iPhone app; optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
 - [x] Traefik v3.7, Semaphore v2.19.14, Gotenberg 8.37, BookStack DB 11.4.12 (installed from HA 2026-09-28; compose files updated to match)
 - [x] Authentik 2026.2.2 → 2026.5.7 → 2026.8.3 (2026-09-28, one release at a time as Authentik requires). Migrations 692 → 777, no errors. Pre-upgrade dump: `authentik-db-before-2026.5-20260928.sql.gz`

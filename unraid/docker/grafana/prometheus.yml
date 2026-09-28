@@ -13,11 +13,17 @@ scrape_configs:
   - job_name: "node_exporter"
     static_configs:
       - targets:
-          - "10.0.51.102:9100"
-          - "10.0.51.254:9100"
           - "10.0.3.11:9100"
         labels:
           app: "node_exporter"
+
+  # Blue Iris VM (Windows) via windows_exporter. Its firewall only allows 10.0.3.11 (Unraid).
+  - job_name: "blue-iris"
+    scrape_interval: 60s
+    static_configs:
+      - targets: ["10.0.60.2:9182"]
+        labels:
+          instance: "blue-iris"
 
   - job_name: "prometheus"
     static_configs:

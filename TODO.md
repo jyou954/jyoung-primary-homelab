@@ -19,7 +19,9 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [x] 2026-09-28: VLAN 40, 50, 51, 60 set to "IPv4 address assignment: None" (VLANs kept for the VM bridges). Verified from HA: Unraid unreachable from IoT; `haos.int` works via Traefik (HA trusts `10.0.3.11`); WUD → MQTT works via the router
 - [x] VNC passwords set on all three VMs (done while they were stopped)
 - [x] Blue Iris: editing the VM dropped its Windows disk (`vdisk1.img`); re-added as disk 1 (VirtIO, boot 1), WD Purple as disk 2. Recording again (~6 Mbit/s in, ~0.8 MB/s to the WD Purple). VM definition backups: `/mnt/user/vms/<vm>/<vm>.xml.bak-20260928`. Disk path set back to the direct pool path `/mnt/vm-pool/vms/hl-bi-01/vdisk1.img` (via virsh, not the form); recording verified
-- [ ] Blue Iris disk monitoring: install `windows_exporter` 0.31.8 in the VM (`ADDLOCAL=FirewallException REMOTE_ADDR=10.0.3.11`), then add Prometheus job, Grafana dashboard and Homepage tile
+- [x] Blue Iris disk monitoring: `windows_exporter` 0.31.8 in the VM (firewall: only `10.0.3.11`), Prometheus job `blue-iris`, Homepage card (D: free / % used)
+- [ ] You: Grafana → Dashboards → New → Import → ID `14694` → Prometheus → Import (auto-import failed)
+- [ ] You: change the Grafana admin password (it was in a helper script and is in the chat transcript); save it in Bitwarden
 - [ ] Tablet: check it still loads the dashboard
 - [ ] Remove `10.0.40.5` from HA trusted proxies, restart HA
 - Also set VLAN 50 (`10.0.50.5`) and 51 (`10.0.51.5`) to None unless something needs them (security audit 2026-09-28).
@@ -82,7 +84,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Printer/UPS mix-up fixed: router DHCP `cbups` (had the printer's MAC) replaced by `Brother-Printer` 10.0.3.15 (Wi-Fi) and `CyberPower-UPS` 10.0.3.14; es48 0/2 renamed `UPS - CyberPower .3.14`
 - [x] HA SSH keys: removed `overlord@docker-01`, added the PC's `overlord_ed25519` (labelled `overlord@workstation`; same key as GitHub). Needs an SSH add-on restart to apply
 - [x] UPS card: SNMPv1 off, HTTPS on; `https://ups.int.jyoung-primary.com` works with a trusted cert. Optional: turn off its HTTP (port 80). Change its login password if it's still the default
-- [ ] Prometheus: two `node_exporter` targets are down because those hosts are off (`10.0.51.102`, `10.0.51.254`). Remove them from `prometheus.yml` or leave until the lab is back
+- [x] Prometheus: removed the two dead lab `node_exporter` targets (`10.0.51.102`, `10.0.51.254`); add them back when the lab returns
 - [ ] You: HA → Profile → Security: turn on TOTP for `overlord`
 
 ## Home Assistant

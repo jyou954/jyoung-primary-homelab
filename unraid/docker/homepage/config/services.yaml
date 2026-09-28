@@ -29,6 +29,27 @@
         icon: bookstack.png
         description: Wiki
         siteMonitor: http://bookstack-server:80/status
+    - Blue Iris:
+        href: http://10.0.60.2:81
+        icon: mdi-cctv
+        description: Cameras
+        siteMonitor: http://10.0.60.2:81
+        # Recording disk (D: = WD Purple) from windows_exporter via Prometheus
+        widget:
+          type: prometheusmetric
+          url: http://prometheus:9090
+          refreshInterval: 60000
+          metrics:
+            - label: Disk free
+              query: windows_logical_disk_free_bytes{instance="blue-iris",volume="D:"}
+              format:
+                type: bytes
+            - label: Disk used
+              query: 100 - 100 * windows_logical_disk_free_bytes{instance="blue-iris",volume="D:"} / windows_logical_disk_size_bytes{instance="blue-iris",volume="D:"}
+              format:
+                type: percent
+                options:
+                  maximumFractionDigits: 0
 
 - Infrastructure:
     - Unraid:
@@ -53,6 +74,8 @@
         siteMonitor: http://authentik-server:9000/-/health/live/
         widget:
           type: authentik
+          # version 2 = Authentik 2025.8+ events API (the old per_month endpoint is gone)
+          version: 2
           url: http://authentik-server:9000
           key: "{{HOMEPAGE_VAR_AUTHENTIK_API}}"
 

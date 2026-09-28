@@ -18,7 +18,8 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [x] Unraid telnet off
 - [x] 2026-09-28: VLAN 40, 50, 51, 60 set to "IPv4 address assignment: None" (VLANs kept for the VM bridges). Verified from HA: Unraid unreachable from IoT; `haos.int` works via Traefik (HA trusts `10.0.3.11`); WUD → MQTT works via the router
 - [x] VNC passwords set on all three VMs (done while they were stopped)
-- [x] Blue Iris: editing the VM dropped its Windows disk (`vdisk1.img`); re-added as disk 1 (VirtIO, boot 1), WD Purple as disk 2. Recording again (~6 Mbit/s in, ~0.8 MB/s to the WD Purple). VM definition backups: `/mnt/user/vms/<vm>/<vm>.xml.bak-20260928`
+- [x] Blue Iris: editing the VM dropped its Windows disk (`vdisk1.img`); re-added as disk 1 (VirtIO, boot 1), WD Purple as disk 2. Recording again (~6 Mbit/s in, ~0.8 MB/s to the WD Purple). VM definition backups: `/mnt/user/vms/<vm>/<vm>.xml.bak-20260928`. Disk path set back to the direct pool path `/mnt/vm-pool/vms/hl-bi-01/vdisk1.img` (via virsh, not the form); recording verified
+- [ ] Blue Iris disk monitoring: install `windows_exporter` 0.31.8 in the VM (`ADDLOCAL=FirewallException REMOTE_ADDR=10.0.3.11`), then add Prometheus job, Grafana dashboard and Homepage tile
 - [ ] Tablet: check it still loads the dashboard
 - [ ] Remove `10.0.40.5` from HA trusted proxies, restart HA
 - Also set VLAN 50 (`10.0.50.5`) and 51 (`10.0.51.5`) to None unless something needs them (security audit 2026-09-28).

@@ -70,7 +70,11 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Unbalanced plugin uninstalled (unused; web UI had no login)
 - [x] Vaultwarden stopped, autostart off (unused; data kept in `/mnt/user/appdata/vaultwarden`)
 - [ ] Change the Unraid user passwords (their hashes were in the guest-readable flash backups)
-- [ ] You: UPS card `http://10.0.3.14`: turn off Telnet and FTP, change the password
+- [x] UPS card `10.0.3.14`: Telnet and FTP off (verified closed 2026-09-28)
+- [ ] You: UPS card: turn off SNMPv1 (nothing uses it; NUT is on USB), enable HTTPS (keep its own certificate), turn off HTTP if possible, change the password
+- [ ] You: Technitium A record `ups.int.jyoung-primary.com` → `10.0.3.11`. Traefik route `dynamic/ups.yml` is already live (502 until the card has HTTPS)
+- [ ] `10.0.3.15` is the Brother printer, not the UPS: fix es48 0/2 port name and the router DHCP mapping `cbups` (its MAC `90:0f:0c:a0:14:0b` is the printer's)
+- [ ] HA SSH key `overlord@docker-01`: find its private key (Bitwarden?). If lost, replace it with the PC's `overlord_ed25519` public key
 - [ ] You: HA → Profile → Security: turn on TOTP for `overlord`
 
 ## Home Assistant

@@ -1,0 +1,14 @@
+http:
+  routers:
+    unraid:
+      rule: "Host(`unraid.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: unraid
+      tls:
+        certResolver: stepca
+  services:
+    unraid:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.3.11:8180"   # ← replace with your Unraid IP and port

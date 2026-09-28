@@ -1,0 +1,7 @@
+tls:
+  options:
+    default:
+      curvePreferences:
+        - CurveP256
+        - CurveP384
+        - X25519

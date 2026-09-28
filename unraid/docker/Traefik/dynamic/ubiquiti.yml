@@ -1,0 +1,42 @@
+http:
+  routers:
+    er4:
+      rule: "Host(`er4.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: er4
+      tls:
+        certResolver: stepca
+    es16:
+      rule: "Host(`es16.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: es16
+      tls:
+        certResolver: stepca
+    es48:
+      rule: "Host(`es48.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: es48
+      tls:
+        certResolver: stepca
+  services:
+    er4:
+      loadBalancer:
+        serversTransport: insecureTransport
+        servers:
+          - url: "https://10.0.3.1:443"
+    es16:
+      loadBalancer:
+        serversTransport: insecureTransport
+        servers:
+          - url: "https://10.0.3.3:443"
+    es48:
+      loadBalancer:
+        serversTransport: insecureTransport
+        servers:
+          - url: "https://10.0.3.2:443"
+  serversTransports:
+    insecureTransport:
+      insecureSkipVerify: true

@@ -1,0 +1,19 @@
+http:
+  routers:
+    ups:
+      rule: "Host(`ups.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: ups
+      tls:
+        certResolver: stepca
+  services:
+    ups:
+      loadBalancer:
+        # CyberPower network card; it only has its own self-signed certificate
+        serversTransport: upsTransport
+        servers:
+          - url: "https://10.0.3.14:443"
+  serversTransports:
+    upsTransport:
+      insecureSkipVerify: true

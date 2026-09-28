@@ -1,0 +1,14 @@
+http:
+  routers:
+    haos:
+      rule: "Host(`haos.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: haos
+      tls:
+        certResolver: stepca
+  services:
+    haos:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.40.7:8123"

@@ -80,14 +80,13 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Unraid share `unraid-usb` (flash backups): Secure → Private (overlord, jyoung RW; jaredyoung read). Guests can no longer read it
 - [x] Unbalanced plugin uninstalled (unused; web UI had no login)
 - [x] Vaultwarden stopped, autostart off (unused; data kept in `/mnt/user/appdata/vaultwarden`)
-- [ ] Change the Unraid user passwords (their hashes were in the guest-readable flash backups)
 - [x] UPS card `10.0.3.14`: Telnet and FTP off (verified closed 2026-09-28)
 - [x] Technitium A record `ups.int.jyoung-primary.com` → `10.0.3.11` (added via API). Traefik route `dynamic/ups.yml` is live (502 until the card has HTTPS)
 - [x] Printer/UPS mix-up fixed: router DHCP `cbups` (had the printer's MAC) replaced by `Brother-Printer` 10.0.3.15 (Wi-Fi) and `CyberPower-UPS` 10.0.3.14; es48 0/2 renamed `UPS - CyberPower .3.14`
 - [x] HA SSH keys: removed `overlord@docker-01`, added the PC's `overlord_ed25519` (labelled `overlord@workstation`; same key as GitHub). Needs an SSH add-on restart to apply
 - [x] UPS card: SNMPv1 off, HTTPS on; `https://ups.int.jyoung-primary.com` works with a trusted cert. Optional: turn off its HTTP (port 80). Change its login password if it's still the default
 - [x] Prometheus: removed the two dead lab `node_exporter` targets (`10.0.51.102`, `10.0.51.254`); add them back when the lab returns
-- [ ] You: HA → Profile → Security: turn on TOTP for `overlord`
+- [x] HA TOTP on for `overlord`
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)

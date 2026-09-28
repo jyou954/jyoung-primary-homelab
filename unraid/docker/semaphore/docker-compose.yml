@@ -2,7 +2,7 @@ name: semaphore
 
 services:
   semaphore-server:
-    image: semaphoreui/semaphore:v2.17.26
+    image: semaphoreui/semaphore:v2.19.14
     container_name: semaphore-server
     restart: unless-stopped
     security_opt:

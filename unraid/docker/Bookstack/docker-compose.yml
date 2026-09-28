@@ -34,7 +34,7 @@ services:
 
   bookstack-mariadb:
     # Pinned: MariaDB major/minor upgrades need a manual upgrade step.
-    image: lscr.io/linuxserver/mariadb:11.4.10
+    image: lscr.io/linuxserver/mariadb:11.4.12
     container_name: bookstack-mariadb
     labels:
       - "wud.display.name=BookStack Database"

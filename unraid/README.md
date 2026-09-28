@@ -66,7 +66,9 @@ Create in Settings → User Scripts with the folder name, paste the file, set th
 | `wud.display.name=...` | Readable name in WUD and HA. |
 | `wud.tag.include=<regex>` | Only offer tags matching the pin (use `$$` for `$` in compose). |
 
-- **Pinned databases** (a new major can't start on old data): Semaphore `postgres:18` (`^18$$`, digest updates only) and BookStack `mariadb:11.4.x` (`^11\.4\.\d+$$`). Upgrading a major is a manual job: dump, upgrade, restore.
+- **Pinned databases** (a new major can't start on old data): Semaphore `postgres:18` (`^18$$`, digest updates only), Authentik `postgres:16-alpine` (`^16-alpine$$`) and BookStack `mariadb:11.4.x` (`^11\.4\.\d+$$`). Upgrading a major is a manual job: dump, upgrade, restore.
+- **Databases are never updated from HA.** Their HA update entities are disabled (`home-assistant/wud_entity_names.py`, `DATABASES`). Update them by hand: dump first, then change the tag in compose and `up -d`.
+- **After installing anything from HA or the WUD UI, update the image tag in that stack's compose file** (here and on Unraid). WUD recreates the container directly and doesn't touch compose; a stale tag makes the next `compose up` (e.g. at boot) downgrade the container. On 2026-09-28 an "install all" moved Authentik to Postgres 18 (refused to start, data safe) and Authentik 2026.2 → 2026.8; both were rolled back.
 - **WUD's own socket proxy is notify-only**: WUD updates containers through it, so restarting it mid-update cuts WUD off (happened on first start, 2026-09-28).
 - **Install from HA**: each container is an `update.wud_container_unraid_<name>` entity with an Install button. The button ignores the labels, so check release notes for major versions first.
 - WUD only rescans at startup if its store is empty. After fixing something by hand, any container create/remove triggers a rescan, or wait for the 6-hourly check.

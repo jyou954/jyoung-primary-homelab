@@ -57,7 +57,9 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 Pending updates show in HA (Settings → Updates) and in WUD. Read release notes before pressing Install on anything below.
 - [x] Immich v2 → v3.2.2 (2026-09-28). Migrations OK, 12983 assets unchanged. Pre-upgrade dump: `/mnt/user/appdata/immich/immich-db-before-v3-20260928.sql.gz`; old `.env` at `.env.bak-20260928`
 - [ ] Immich: update the iPhone app; optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
-- [ ] Traefik v3.6 → v3.7, Semaphore v2.17 → v2.19, Paperless Gotenberg 8.25 → 8.37, BookStack DB 11.4.10 → 11.4.12 (patch, within the pin)
+- [x] Traefik v3.7, Semaphore v2.19.14, Gotenberg 8.37, BookStack DB 11.4.12 (installed from HA 2026-09-28; compose files updated to match)
+- [ ] Authentik 2026.2.2 → 2026.8.x: do it deliberately. Read the release notes for each version in between, dump the DB (`authentik-db-20260928.sql.gz` exists), then change the tag in compose
+- [ ] Consider WUD's compose-aware trigger (`dockercompose`) so installs also update the compose file
 - [x] Authentik: had been stopped since 2026-08-08. Started again with autostart on (2026-09-28)
 - [ ] Add `wud.display.name` labels to the unlabelled compose services the next time each stack is edited (HA names are already set by `home-assistant/wud_entity_names.py`)
 - [ ] After 2026-10-05, on Unraid: delete the `docker-compose.yml.bak-20260928` copies, `render.sh.bak-20260928`, Immich's `.env.bak-20260928` and `/mnt/user/system/secrets.bak-20260928`; remove Semaphore's old anonymous volume `961b72e7…` (confirm first)

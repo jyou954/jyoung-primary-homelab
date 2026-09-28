@@ -27,8 +27,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   authentik-postgresql:
+    # Pinned to the major version: a new major can't start on old data files.
     image: docker.io/library/postgres:16-alpine
     container_name: authentik-postgresql
+    labels:
+      - "wud.display.name=Authentik Database"
+      - "wud.watch.digest=true"
+      - 'wud.tag.include=^16-alpine$$'
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

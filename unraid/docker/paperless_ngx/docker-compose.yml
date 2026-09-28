@@ -62,7 +62,7 @@ services:
       - /mnt/user/appdata/paperless-ngx/redisdata:/data
 
   paperless-gotenberg:
-    image: docker.io/gotenberg/gotenberg:8.25
+    image: docker.io/gotenberg/gotenberg:8.37
     container_name: paperless-gotenberg
     restart: unless-stopped
     networks:

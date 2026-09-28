@@ -17,7 +17,7 @@ Surveyed 2026-09-28 from MAC tables, LLDP and router DHCP/ARP. Port names below 
 ## `jy-nw-es48`: EdgeSwitch 48 Lite, `10.0.3.2`, fw 1.10.4
 | Port | Name | What's there |
 |---|---|---|
-| 0/2 | UPS - CyberPower .3.15 | UPS network card |
+| 0/2 | UPS - CyberPower .3.14 | UPS network card (`https://ups.int.jyoung-primary.com`) |
 | 0/4 | Server - Unraid (trunk) | Unraid + VMs (HA `10.0.40.7`, Technitium `10.0.3.254`), VLANs 1/40/50/51/60 |
 | 0/6 | Server - TrueNAS | |
 | 0/8 | Server - Proxmox 03 | **links at 100 Mbps**: check cable |

@@ -41,7 +41,7 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
     - [ ] Unknown HF-LPT230 Wi-Fi module `10.0.3.226` (MAC `e8:fd:f8…`): identify via http://10.0.3.226 (often admin/admin)
   - Wired devices → EdgeSwitch port VLAN untagged + PVID:
     - [ ] Hue bridge `10.0.3.60` → VLAN 40. First reserve `10.0.40.60` (router DHCP IoT static mapping, MAC `00:17:88:2d:7b:2e`). After: check HA Hue integration, delete `BLOCK_IN` "Allow Hue Hub".
-    - [ ] CyberPower UPS card `10.0.3.15` → Management VLAN 50 (optional)
+    - [ ] CyberPower UPS card `10.0.3.14` → Management VLAN 50 (optional; update `dynamic/ups.yml` if its IP changes)
     - [ ] Camera `10.0.40.10` → camera VLAN 60: reserve a `10.0.60.x`, update IP in Blue Iris, delete `security_vlan_in` "Blue Iris to IoT camera"
 - [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). Leftover NAT rule 1 `dns-redirect-VLAN50` that pointed at it is deleted.
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`. Its key has **no `from=` limit** (EdgeOS rejects quotes), so don't leave it longer than needed.
@@ -72,8 +72,8 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [ ] Change the Unraid user passwords (their hashes were in the guest-readable flash backups)
 - [x] UPS card `10.0.3.14`: Telnet and FTP off (verified closed 2026-09-28)
 - [ ] You: UPS card: turn off SNMPv1 (nothing uses it; NUT is on USB), enable HTTPS (keep its own certificate), turn off HTTP if possible, change the password
-- [ ] You: Technitium A record `ups.int.jyoung-primary.com` → `10.0.3.11`. Traefik route `dynamic/ups.yml` is already live (502 until the card has HTTPS)
-- [ ] `10.0.3.15` is the Brother printer, not the UPS: fix es48 0/2 port name and the router DHCP mapping `cbups` (its MAC `90:0f:0c:a0:14:0b` is the printer's)
+- [x] Technitium A record `ups.int.jyoung-primary.com` → `10.0.3.11` (added via API). Traefik route `dynamic/ups.yml` is live (502 until the card has HTTPS)
+- [x] Printer/UPS mix-up fixed: router DHCP `cbups` (had the printer's MAC) replaced by `Brother-Printer` 10.0.3.15 (Wi-Fi) and `CyberPower-UPS` 10.0.3.14; es48 0/2 renamed `UPS - CyberPower .3.14`
 - [ ] HA SSH key `overlord@docker-01`: find its private key (Bitwarden?). If lost, replace it with the PC's `overlord_ed25519` public key
 - [ ] You: HA → Profile → Security: turn on TOTP for `overlord`
 

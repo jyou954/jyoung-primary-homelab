@@ -74,7 +74,7 @@ Create in Settings → User Scripts with the folder name, paste the file, set th
 | `wud.trigger.include=docker.autoupdate,mqtt.ha` | Leftover from when WUD auto-updated five containers; now just reporting. Remove next time the stack is edited. |
 
 - **Pinned databases** (a new major can't start on old data): Semaphore `postgres:18` (`^18$$`, digest updates only), Authentik `postgres:16-alpine` (`^16-alpine$$`) and BookStack `mariadb:11.4.x` (`^11\.4\.\d+$$`). Upgrading a major is a manual job: dump, upgrade, restore.
-- **Why report-only:** on 2026-09-28 installing everything from HA moved Authentik to Postgres 18 (refused to start, data safe) and Authentik 2026.2 → 2026.8, and left compose files naming old versions (a later `compose up` would have downgraded them). All rolled back / synced.
+- **Why report-only:** on 2026-09-28 installing everything from HA moved Authentik to Postgres 18 (refused to start, data safe) and Authentik 2026.2 → 2026.8, and left compose files naming old versions (a later `compose up` would have downgraded them). All rolled back / synced. WUD's rebuild of Traefik also copied its old MAC address, which Semaphore later received too, so Traefik couldn't reach Semaphore (502) until Traefik was recreated from compose.
 - WUD only rescans at startup if its store is empty. To refresh the list after updating, use the refresh button on the watcher in the WUD UI, or wait for the 6-hourly check.
 - Secrets `WUD_AUTH_ADMIN_HASH` (bcrypt, `htpasswd -nB`) and `WUD_TRIGGER_MQTT_HA_PASSWORD` (HA user `wud`) come from `bws-render`. BWS secrets must be in the **Infrastructure** project; the access token can't see others.
 

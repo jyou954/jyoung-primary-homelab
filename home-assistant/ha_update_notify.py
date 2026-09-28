@@ -187,9 +187,9 @@ CONTAINERS_PENDING = "states.update | selectattr('entity_id', 'match', 'update.w
 container_notify = {
     "id": "notify_iphone_of_container_updates",
     "alias": "Notify iPhone of container updates",
-    "description": "One push listing Unraid container updates found by What's Up Docker. Waits 10 min so containers "
-                   "that update themselves drop off first. Tapping it opens Settings > Updates, where each "
-                   "container has its own Install button.",
+    "description": "One push listing Unraid container updates found by What's Up Docker (report-only). "
+                   "Waits 10 min so bursts collapse into one push. Tapping it opens the WUD page. Updates are "
+                   "approved by hand (Compose Manager > Update Stack); HA's Install buttons do nothing.",
     "mode": "restart",
     "triggers": [{"trigger": "state", "entity_id": "sensor.wud_container_update_count"}],
     "conditions": [{"condition": "template", "value_template":
@@ -204,7 +204,7 @@ container_notify = {
                        "{% set a = s.attributes %}{{ s.name }}: "
                        "{{ 'new build of ' ~ a.installed_version if (a.latest_version or '') is match('sha256') "
                        "else a.installed_version ~ ' -> ' ~ a.latest_version }}\n{% endfor %}",
-            "data": {"tag": "container_updates", "url": "/config/updates"}}},
+            "data": {"tag": "container_updates", "url": "https://wud.int.jyoung-primary.com"}}},
     ],
 }
 print("container notify automation:",

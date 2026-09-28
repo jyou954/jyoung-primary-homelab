@@ -57,21 +57,25 @@ Create in Settings → User Scripts with the folder name, paste the file, set th
   `P=/boot/config/plugins/compose.manager/projects/<project>; docker compose -p "$(cat $P/name)" -f $P/docker-compose.yml -f $P/docker-compose.override.yml --project-directory $P up -d <service>`
 
 ### Container updates (What's Up Docker)
-`docker/wud/` runs WUD at `https://wud.int.jyoung-primary.com` (login `jyoung`). It checks every container every 6 hours.
+`docker/wud/` runs WUD at `https://wud.int.jyoung-primary.com` (login `jyoung`). It checks every container every 6 hours and **only reports**: it has no update trigger, and its socket proxy is read-only (`POST=0`), so it can't change any container.
+
+**Where to see updates:** the WUD web UI (full list, current → available, patch/minor/major), the iPhone push when new updates appear, and HA → Settings → Updates. HA's Install buttons do nothing.
+
+**How to update (you approve each one):**
+1. Judge the jump: a new build of `latest` or a patch is safe; a minor, skim the release notes; a major, or anything with a database or Authentik, read the release notes and dump the database first.
+2. Tag bump (e.g. `v3.6` → `v3.7`): change the tag in the stack's compose file, here and on Unraid.
+3. Unraid → Docker → Compose → the stack → **Update Stack** (pulls and recreates from the compose file, so compose stays the source of truth).
+4. Safety net: Appdata Backup archives all appdata nightly at 00:00 (keeps 3); Immich also dumps its DB nightly.
 
 | Label on a service | Effect |
 |---|---|
-| none | Reported to HA only (update entity + push). Install by hand. |
-| `wud.trigger.include=docker.autoupdate,mqtt.ha` | Also updated automatically. Only for low-risk containers: Homepage, Node Exporter, Paperless Tika, the Traefik and Authentik socket proxies. |
 | `wud.display.name=...` | Readable name in WUD and HA. |
 | `wud.tag.include=<regex>` | Only offer tags matching the pin (use `$$` for `$` in compose). |
+| `wud.trigger.include=docker.autoupdate,mqtt.ha` | Leftover from when WUD auto-updated five containers; now just reporting. Remove next time the stack is edited. |
 
 - **Pinned databases** (a new major can't start on old data): Semaphore `postgres:18` (`^18$$`, digest updates only), Authentik `postgres:16-alpine` (`^16-alpine$$`) and BookStack `mariadb:11.4.x` (`^11\.4\.\d+$$`). Upgrading a major is a manual job: dump, upgrade, restore.
-- **Databases are never updated from HA.** Their HA update entities are disabled (`home-assistant/wud_entity_names.py`, `DATABASES`). Update them by hand: dump first, then change the tag in compose and `up -d`.
-- **After installing anything from HA or the WUD UI, update the image tag in that stack's compose file** (here and on Unraid). WUD recreates the container directly and doesn't touch compose; a stale tag makes the next `compose up` (e.g. at boot) downgrade the container. On 2026-09-28 an "install all" moved Authentik to Postgres 18 (refused to start, data safe) and Authentik 2026.2 → 2026.8; both were rolled back.
-- **WUD's own socket proxy is notify-only**: WUD updates containers through it, so restarting it mid-update cuts WUD off (happened on first start, 2026-09-28).
-- **Install from HA**: each container is an `update.wud_container_unraid_<name>` entity with an Install button. The button ignores the labels, so check release notes for major versions first.
-- WUD only rescans at startup if its store is empty. After fixing something by hand, any container create/remove triggers a rescan, or wait for the 6-hourly check.
+- **Why report-only:** on 2026-09-28 installing everything from HA moved Authentik to Postgres 18 (refused to start, data safe) and Authentik 2026.2 → 2026.8, and left compose files naming old versions (a later `compose up` would have downgraded them). All rolled back / synced.
+- WUD only rescans at startup if its store is empty. To refresh the list after updating, use the refresh button on the watcher in the WUD UI, or wait for the 6-hourly check.
 - Secrets `WUD_AUTH_ADMIN_HASH` (bcrypt, `htpasswd -nB`) and `WUD_TRIGGER_MQTT_HA_PASSWORD` (HA user `wud`) come from `bws-render`. BWS secrets must be in the **Infrastructure** project; the access token can't see others.
 
 ## Not in repo

@@ -45,12 +45,8 @@ CONTAINERS = {
     "wud": "What's Up Docker",
 }
 
-# Databases are never updated from HA: their update entities are disabled, which hides them and their
-# Install button. Update them by hand with a dump first (see unraid/README.md). WUD's web UI still lists them.
-DATABASES = {
-    "authentik-postgresql", "authentik-redis", "bookstack-mariadb", "paperless-postgresql",
-    "paperless-redis", "semaphore-postgresql", "immich-postgresql", "immich-redis",
-}
+# WUD is report-only, so the Install buttons these entities show do nothing. All of them stay
+# enabled (databases included) so HA lists every pending update. Update by hand: see unraid/README.md.
 
 OTHER_ENTITIES = {
     "sensor.wud_container_update_count": "Container Updates Available",
@@ -144,16 +140,15 @@ for e in sorted(entities, key=lambda x: x["entity_id"]):
     else:
         key = eid[len(prefix):] if eid.startswith(prefix) else eid.split(".", 1)[1]
         name = readable(by_key.get(key, key))
-    container = by_key.get(eid[len(prefix):]) if eid.startswith(prefix) else None
     update = {}
     if e.get("name") != name:
         update["name"] = name
-    if container in DATABASES and e.get("disabled_by") is None:
-        update["disabled_by"] = "user"
+    if e.get("disabled_by") == "user":
+        update["disabled_by"] = None
     if update:
         call(dict({"type": "config/entity_registry/update", "entity_id": eid}, **update))
     print("%-55s %s%s%s" % (eid, name, "" if update else " (unchanged)",
-                            " [disabled: database]" if container in DATABASES else ""))
+                            " [re-enabled]" if "disabled_by" in update else ""))
 
 for d in call({"type": "config/device_registry/list"}):
     for domain, ident in d.get("identifiers", []):

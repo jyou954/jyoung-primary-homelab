@@ -7,24 +7,22 @@ services:
     restart: unless-stopped
     labels:
       - "wud.display.name=WUD Socket Proxy"
-      # Notify only: WUD updates containers through this proxy, so it can't restart it safely.
-      - "wud.trigger.include=mqtt.ha"
     read_only: true
     tmpfs:
       - /run
     networks:
       - wud_socket_proxy
+    # Read-only: WUD can list containers and images, but can't create, stop or remove anything.
     environment:
       - CONTAINERS=1
       - IMAGES=1
-      - NETWORKS=1
       - EVENTS=1
       - INFO=1
       - VERSION=1
-      - POST=1
-      - ALLOW_START=1
-      - ALLOW_STOP=1
-      - ALLOW_RESTARTS=1
+      - POST=0
+      - ALLOW_START=0
+      - ALLOW_STOP=0
+      - ALLOW_RESTARTS=0
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
@@ -49,9 +47,8 @@ services:
       - WUD_WATCHER_UNRAID_PORT=2375
       - WUD_WATCHER_UNRAID_CRON=0 */6 * * *
       - WUD_WATCHER_UNRAID_WATCHDIGESTDEFAULT=true
-      # Auto-update only containers labelled wud.trigger.include=docker.autoupdate.
-      - WUD_TRIGGER_DOCKER_AUTOUPDATE_INCLUDEBYDEFAULT=false
-      - WUD_TRIGGER_DOCKER_AUTOUPDATE_PRUNE=true
+      # Report only. No docker trigger: WUD never updates anything; updates are done by hand
+      # (Compose Manager → Update Stack). HA's Install buttons therefore do nothing.
       # Report every update to Home Assistant.
       - WUD_TRIGGER_MQTT_HA_URL=mqtt://10.0.40.7:1883
       - WUD_TRIGGER_MQTT_HA_USER=wud

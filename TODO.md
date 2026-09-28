@@ -52,7 +52,8 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
     - [ ] Camera `10.0.40.10` → camera VLAN 60: reserve a `10.0.60.x`, update IP in Blue Iris, delete `security_vlan_in` "Blue Iris to IoT camera"
 - [x] #6 `10.0.3.5` is a Meross device (MAC `c4:e7:ae…`). Leftover NAT rule 1 `dns-redirect-VLAN50` that pointed at it is deleted.
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`. Its key has **no `from=` limit** (EdgeOS rejects quotes), so don't leave it longer than needed.
-- [ ] Optional: let IoT resolve `*.int.jyoung-primary.com` (`set service dns forwarding options server=/int.jyoung-primary.com/10.0.3.11`)
+- [x] Router forwards `*.int.jyoung-primary.com` to Technitium; removed its wrong `unraid-int-ca → 10.0.3.11` host entry (2026-09-29)
+- [x] Unraid: Tailscale DNS takeover off; host + containers resolve internet names again (had been broken since the VLAN change)
 
 ## Switches (see `network/switch-ports.md`)
 - [x] Port names set and saved on `jy-nw-es16` and `jy-nw-es48` (2026-09-28)

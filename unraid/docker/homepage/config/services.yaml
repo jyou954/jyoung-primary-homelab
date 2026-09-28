@@ -30,7 +30,7 @@
         description: Wiki
         siteMonitor: http://bookstack-server:80/status
     - Blue Iris:
-        href: http://10.0.60.2:81
+        href: https://blueiris.int.jyoung-primary.com
         icon: mdi-cctv
         description: Cameras
         siteMonitor: http://10.0.60.2:81

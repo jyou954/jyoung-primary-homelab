@@ -19,6 +19,8 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [x] 2026-09-28: VLAN 40, 50, 51, 60 set to "IPv4 address assignment: None" (VLANs kept for the VM bridges). Verified from HA: Unraid unreachable from IoT; `haos.int` works via Traefik (HA trusts `10.0.3.11`); WUD → MQTT works via the router
 - [x] VNC passwords set on all three VMs (done while they were stopped)
 - [x] Blue Iris: editing the VM dropped its Windows disk (`vdisk1.img`); re-added as disk 1 (VirtIO, boot 1), WD Purple as disk 2. Recording again (~6 Mbit/s in, ~0.8 MB/s to the WD Purple). VM definition backups: `/mnt/user/vms/<vm>/<vm>.xml.bak-20260928`. Disk path set back to the direct pool path `/mnt/vm-pool/vms/hl-bi-01/vdisk1.img` (via virsh, not the form); recording verified
+- [x] CA VM `unraid-int-ca` had also lost its disk in the same VNC-password edit (sat at the UEFI shell; all `*.int` certs would have expired within 24 h). Disk re-added via virsh (`/mnt/vm-pool/vms/unraid-int-ca/vdisk1.img`, VirtIO, boot 1); step-ca up
+- [x] Blue Iris behind Traefik: `https://blueiris.int.jyoung-primary.com` (`dynamic/blueiris.yml`, Technitium A record)
 - [x] Blue Iris disk monitoring: `windows_exporter` 0.31.8 in the VM (firewall: only `10.0.3.11`), Prometheus job `blue-iris`, Homepage card (D: free / % used)
 - [ ] You: Grafana → Dashboards → New → Import → ID `14694` → Prometheus → Import (auto-import failed)
 - [ ] You: change the Grafana admin password (it was in a helper script and is in the chat transcript); save it in Bitwarden

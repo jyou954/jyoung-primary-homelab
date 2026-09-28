@@ -1,0 +1,15 @@
+http:
+  routers:
+    blueiris:
+      rule: "Host(`blueiris.int.jyoung-primary.com`)"
+      entrypoints:
+        - websecure
+      service: blueiris
+      tls:
+        certResolver: stepca
+  services:
+    blueiris:
+      loadBalancer:
+        # Blue Iris VM on the camera VLAN; its web server only speaks HTTP
+        servers:
+          - url: "http://10.0.60.2:81"

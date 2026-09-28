@@ -71,10 +71,11 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Vaultwarden stopped, autostart off (unused; data kept in `/mnt/user/appdata/vaultwarden`)
 - [ ] Change the Unraid user passwords (their hashes were in the guest-readable flash backups)
 - [x] UPS card `10.0.3.14`: Telnet and FTP off (verified closed 2026-09-28)
-- [ ] You: UPS card: turn off SNMPv1 (nothing uses it; NUT is on USB), enable HTTPS (keep its own certificate), turn off HTTP if possible, change the password
 - [x] Technitium A record `ups.int.jyoung-primary.com` → `10.0.3.11` (added via API). Traefik route `dynamic/ups.yml` is live (502 until the card has HTTPS)
 - [x] Printer/UPS mix-up fixed: router DHCP `cbups` (had the printer's MAC) replaced by `Brother-Printer` 10.0.3.15 (Wi-Fi) and `CyberPower-UPS` 10.0.3.14; es48 0/2 renamed `UPS - CyberPower .3.14`
-- [ ] HA SSH key `overlord@docker-01`: find its private key (Bitwarden?). If lost, replace it with the PC's `overlord_ed25519` public key
+- [x] HA SSH keys: removed `overlord@docker-01`, added the PC's `overlord_ed25519` (labelled `overlord@workstation`; same key as GitHub). Needs an SSH add-on restart to apply
+- [x] UPS card: SNMPv1 off, HTTPS on; `https://ups.int.jyoung-primary.com` works with a trusted cert. Optional: turn off its HTTP (port 80). Change its login password if it's still the default
+- [ ] Prometheus: two `node_exporter` targets are down because those hosts are off (`10.0.51.102`, `10.0.51.254`). Remove them from `prometheus.yml` or leave until the lab is back
 - [ ] You: HA → Profile → Security: turn on TOTP for `overlord`
 
 ## Home Assistant

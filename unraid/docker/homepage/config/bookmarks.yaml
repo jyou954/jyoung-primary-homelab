@@ -1,0 +1,15 @@
+---
+# https://gethomepage.dev/configs/bookmarks/
+- Links:
+    - GitHub:
+        - icon: github.png
+          href: https://github.com/
+    - Homelab repo:
+        - icon: github.png
+          href: https://github.com/jyou954/jyoung-primary-homelab
+    - Reddit:
+        - icon: reddit.png
+          href: https://reddit.com/
+    - YouTube:
+        - icon: youtube.png
+          href: https://youtube.com/

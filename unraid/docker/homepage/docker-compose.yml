@@ -14,6 +14,8 @@ services:
     volumes:
       - /mnt/user/appdata/homepage:/app/config
       - /mnt/user/appdata/homepage/icons:/app/public/icons
+      # Empty folder on the array, read-only: lets the resources widget show array free space.
+      - /mnt/user/system/homepage-array:/mnt/array:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.homepage.rule=Host(`homepage.int.jyoung-primary.com`)"

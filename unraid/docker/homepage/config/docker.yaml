@@ -1,0 +1,3 @@
+---
+# https://gethomepage.dev/configs/docker/
+# Not used: Homepage has no Docker socket access. Up/down dots come from siteMonitor/ping in services.yaml.

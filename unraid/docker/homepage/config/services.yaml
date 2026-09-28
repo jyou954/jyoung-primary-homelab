@@ -1,0 +1,109 @@
+---
+# https://gethomepage.dev/configs/services/
+# href = what you click. siteMonitor/ping = the up/down dot, checked from inside the
+# homepage container, so it uses container names and internal ports.
+# API keys come from /mnt/user/system/secrets/homepage.env (HOMEPAGE_VAR_*).
+
+- Apps:
+    - Home Assistant:
+        href: https://haos.int.jyoung-primary.com
+        icon: home-assistant.png
+        description: Home automation
+        siteMonitor: http://10.0.40.7:8123
+    - Immich:
+        href: https://immich.int.jyoung-primary.com
+        icon: immich.png
+        description: Photos
+        siteMonitor: http://immich-server:2283
+    - Paperless:
+        href: https://paperless.int.jyoung-primary.com
+        icon: paperless-ngx.png
+        description: Documents
+        siteMonitor: http://paperless-server:8000
+        widget:
+          type: paperlessngx
+          url: http://paperless-server:8000
+          key: "{{HOMEPAGE_VAR_PAPERLESS_NGX_API}}"
+    - BookStack:
+        href: https://bookstack.int.jyoung-primary.com
+        icon: bookstack.png
+        description: Wiki
+        siteMonitor: http://bookstack-server:80/status
+
+- Infrastructure:
+    - Unraid:
+        href: https://unraid.int.jyoung-primary.com
+        icon: unraid.png
+        description: Server
+        siteMonitor: http://10.0.3.11:8180
+    - Traefik:
+        href: https://unraid-traefik.int.jyoung-primary.com
+        icon: traefik.png
+        description: Reverse proxy
+        siteMonitor: http://unraid-traefik:8080/metrics
+    - Technitium:
+        href: https://unraid-technitium.int.jyoung-primary.com
+        icon: technitium.png
+        description: DNS
+        siteMonitor: https://unraid-technitium:53443
+    - Authentik:
+        href: https://authentik.int.jyoung-primary.com
+        icon: authentik.png
+        description: Sign-in (SSO)
+        siteMonitor: http://authentik-server:9000/-/health/live/
+        widget:
+          type: authentik
+          url: http://authentik-server:9000
+          key: "{{HOMEPAGE_VAR_AUTHENTIK_API}}"
+
+- Monitoring:
+    - Grafana:
+        href: https://grafana.int.jyoung-primary.com
+        icon: grafana.png
+        description: Dashboards
+        siteMonitor: http://grafana:3000/api/health
+    - Prometheus:
+        href: https://prometheus.int.jyoung-primary.com
+        icon: prometheus.png
+        description: Metrics
+        siteMonitor: http://prometheus:9090/-/healthy
+        widget:
+          type: prometheus
+          url: http://prometheus:9090
+    - Container Updates:
+        href: https://wud.int.jyoung-primary.com
+        icon: docker.png
+        description: What's Up Docker
+        siteMonitor: http://wud:3000
+    - Semaphore:
+        href: https://semaphore.int.jyoung-primary.com
+        icon: semaphore.png
+        description: Ansible runs
+        siteMonitor: http://semaphore-server:3000/api/ping
+
+- Network:
+    - EdgeRouter 4:
+        href: https://er4.int.jyoung-primary.com
+        icon: ubiquiti.png
+        description: Router
+        ping: 10.0.3.1
+    - EdgeSwitch 16:
+        href: https://es16.int.jyoung-primary.com
+        icon: ubiquiti.png
+        description: 16-port switch
+        ping: 10.0.3.3
+    - EdgeSwitch 48:
+        href: https://es48.int.jyoung-primary.com
+        icon: ubiquiti.png
+        description: 48-port switch
+        ping: 10.0.3.2
+    - UniFi:
+        href: https://unifi.int.jyoung-primary.com
+        icon: unifi.png
+        description: Wi-Fi controller
+        siteMonitor: https://unifi:8443
+    - UPS:
+        href: https://ups.int.jyoung-primary.com
+        icon: mdi-power-plug-battery-outline
+        description: CyberPower card
+        ping: 10.0.3.14

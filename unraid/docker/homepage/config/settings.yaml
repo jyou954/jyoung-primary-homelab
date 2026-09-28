@@ -1,0 +1,27 @@
+---
+# https://gethomepage.dev/configs/settings/
+title: Homelab
+theme: dark
+color: slate
+headerStyle: clean
+statusStyle: dot
+hideVersion: true
+target: _blank
+
+quicklaunch:
+  searchDescriptions: true
+  provider: duckduckgo
+
+# Groups without "style: row" are columns, side by side.
+layout:
+  Apps:
+    icon: mdi-apps
+  Infrastructure:
+    icon: mdi-server
+  Monitoring:
+    icon: mdi-chart-line
+  Network:
+    icon: mdi-lan
+  Links:
+    style: row
+    columns: 4

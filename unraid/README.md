@@ -20,6 +20,7 @@ Copy files with `scp <file> root@10.0.3.11:<path>`. `/boot` is the USB flash and
 | `scripts/<x>.sh` | `/boot/config/plugins/user.scripts/scripts/<folder>/script` | See table below |
 | `docker/<project>/` | `/boot/config/plugins/compose.manager/projects/<project>/` | Docker tab → Compose → project → Compose Up |
 | `docker/grafana/prometheus.yml` | `/mnt/user/appdata/prometheus/prometheus.yml` | `docker restart prometheus` |
+| `docker/homepage/config/*.yaml` | `/mnt/user/appdata/homepage/` | Homepage reloads on save. Up/down dots are checked from inside the container (container names, internal ports); API keys come from `homepage.env` as `{{HOMEPAGE_VAR_*}}` |
 | `docker/Traefik/dynamic/*.yml` | `/mnt/user/appdata/traefik/dynamic/` | Traefik reloads on save. Routes for non-Docker hosts: HA, router, switches, UPS card, Unraid UI. Each needs a Technitium A record `<name>.int.jyoung-primary.com` → `10.0.3.11` |
 
 ### User scripts

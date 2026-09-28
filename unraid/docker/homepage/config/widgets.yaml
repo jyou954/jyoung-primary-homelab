@@ -1,0 +1,23 @@
+---
+# https://gethomepage.dev/configs/info-widgets/
+- resources:
+    label: Unraid
+    cpu: true
+    memory: true
+    cputemp: true
+    uptime: true
+    units: metric
+
+# /mnt/array is an empty folder on the array, mounted read-only, so this shows the array's free space.
+- resources:
+    label: Array
+    disk: /mnt/array
+
+- search:
+    provider: duckduckgo
+    target: _blank
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short

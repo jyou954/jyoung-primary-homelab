@@ -107,6 +107,13 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - Note: git on this PC uses Windows OpenSSH (`git config --global core.sshCommand`), needed for the `overlord_ed25519` key
 - [ ] `claude_ed25519` key expires on Unraid, Synology and HA on **2026-12-31** (`expiry-time`). Renew or remove the `authorized_keys` lines before then.
 
+## Offsite backup (parked until the TrueNAS version is known)
+Target: your TrueNAS at the other house (not the old `truenas-scale` Tailscale device; that one can be removed). ~2 TB free. Scope: irreplaceable only (~1.1 TB): Immich photos, `personal`, `backups-family`, `backups-friends`, appdata/HA/flash backups.
+- [ ] Reset the TrueNAS share user's password (Credentials → Users → Edit) and save it in Bitwarden
+- [ ] Check the TrueNAS version (Dashboard → System Information: SCALE or CORE + release)
+- [ ] Then: dedicated dataset + user (SSH key only, no SMB) · daily ZFS snapshots kept 30 days (Unraid can't delete them) · Tailscale on the TrueNAS with ACLs: only Unraid → TrueNAS SSH · restic (encrypted, key in Bitwarden) nightly from Unraid · first copy over the network or via USB seed
+- If the TrueNAS admin is ever locked out: local console menu → "Change local administrator password" (data untouched). Encrypted pool + lost key = data lost
+
 ## Parked
 - TrueNAS backup (share not mounted) and restic (disabled)
 - Unraid disk balance, second parity drive

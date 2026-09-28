@@ -1,0 +1,76 @@
+name: wud
+
+services:
+  wud-socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: socket-proxy-wud
+    restart: unless-stopped
+    labels:
+      - "wud.display.name=WUD Socket Proxy"
+      # Notify only: WUD updates containers through this proxy, so it can't restart it safely.
+      - "wud.trigger.include=mqtt.ha"
+    read_only: true
+    tmpfs:
+      - /run
+    networks:
+      - wud_socket_proxy
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - EVENTS=1
+      - INFO=1
+      - VERSION=1
+      - POST=1
+      - ALLOW_START=1
+      - ALLOW_STOP=1
+      - ALLOW_RESTARTS=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  wud:
+    image: getwud/wud:9
+    container_name: wud
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - wud-socket-proxy
+    networks:
+      - frontend
+      - wud_socket_proxy
+    env_file:
+      - /mnt/user/system/secrets/wud.env   # WUD_AUTH_ADMIN_HASH, WUD_TRIGGER_MQTT_HA_PASSWORD
+    environment:
+      - TZ=Australia/Sydney
+      - WUD_AUTH_ADMIN_USER=jyoung
+      # Check every container on this host every 6 hours.
+      - WUD_WATCHER_UNRAID_HOST=wud-socket-proxy
+      - WUD_WATCHER_UNRAID_PORT=2375
+      - WUD_WATCHER_UNRAID_CRON=0 */6 * * *
+      - WUD_WATCHER_UNRAID_WATCHDIGESTDEFAULT=true
+      # Auto-update only containers labelled wud.trigger.include=docker.autoupdate.
+      - WUD_TRIGGER_DOCKER_AUTOUPDATE_INCLUDEBYDEFAULT=false
+      - WUD_TRIGGER_DOCKER_AUTOUPDATE_PRUNE=true
+      # Report every update to Home Assistant.
+      - WUD_TRIGGER_MQTT_HA_URL=mqtt://10.0.40.7:1883
+      - WUD_TRIGGER_MQTT_HA_USER=wud
+      - WUD_TRIGGER_MQTT_HA_CLIENTID=wud
+      - WUD_TRIGGER_MQTT_HA_HASS_ENABLED=true
+      - WUD_TRIGGER_MQTT_HA_HASS_DEVICENAME=Unraid Containers
+    volumes:
+      - /mnt/user/appdata/wud/store:/store
+    labels:
+      - "wud.display.name=What's Up Docker"
+      - "traefik.enable=true"
+      - "traefik.http.routers.wud.rule=Host(`wud.int.jyoung-primary.com`)"
+      - "traefik.http.routers.wud.entrypoints=websecure"
+      - "traefik.http.routers.wud.tls=true"
+      - "traefik.http.routers.wud.tls.certresolver=stepca"
+      - "traefik.http.services.wud.loadbalancer.server.port=3000"
+
+networks:
+  frontend:
+    external: true
+  wud_socket_proxy:
+    internal: true

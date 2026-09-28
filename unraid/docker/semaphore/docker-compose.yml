@@ -38,7 +38,8 @@ services:
       - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
 
   semaphore-postgresql:
-    image: docker.io/library/postgres:latest
+    # Pinned to the major version: a new major can't start on old data files.
+    image: docker.io/library/postgres:18
     container_name: semaphore-postgresql
     restart: unless-stopped
     networks:
@@ -49,7 +50,11 @@ services:
       - POSTGRES_DB=semaphore
       - POSTGRES_USER=semaphore
     volumes:
-      - /mnt/user/appdata/semaphore/pgdata:/var/lib/mysql
+      - /mnt/user/appdata/semaphore/pgdata:/var/lib/postgresql
+    labels:
+      - "wud.display.name=Semaphore Database"
+      - "wud.watch.digest=true"
+      - 'wud.tag.include=^18$$'
 
 networks:
   frontend:

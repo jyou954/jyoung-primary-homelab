@@ -4,10 +4,10 @@ Config for the homelab, versioned. **The servers are the source of truth** — t
 
 | Folder | Host | What |
 |---|---|---|
-| [`unraid/`](unraid/README.md) | Unraid `10.0.3.11` | User scripts, NUT (UPS), logrotate, boot `go` file, Docker compose stacks |
+| [`unraid/`](unraid/README.md) | Unraid `10.0.3.11` | User scripts, NUT (UPS), logrotate, boot `go` file, Docker compose stacks, container updates (WUD) |
 | [`synology/`](synology/README.md) | Synology `10.0.3.13` | Backup target layout and retention, rotation task |
 | [`network/`](network/switch-ports.md) | EdgeSwitches `10.0.3.2`, `10.0.3.3` | Port map, known cabling issues |
-| [`home-assistant/`](home-assistant/README.md) | HA `10.0.40.7` | Dashboard builder, update notifications, entity renames, automations snapshot |
+| [`home-assistant/`](home-assistant/README.md) | HA `10.0.40.7` | Dashboard builder, update notifications (HA and containers), entity renames, automations snapshot |
 
 Open work: [`TODO.md`](TODO.md).
 

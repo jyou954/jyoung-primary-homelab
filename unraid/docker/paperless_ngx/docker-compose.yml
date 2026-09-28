@@ -78,6 +78,10 @@ services:
     restart: unless-stopped
     networks:
       - paperless_internal
+    labels:
+      - "wud.display.name=Paperless Tika"
+      - "wud.watch.digest=true"
+      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
 
 networks:
   frontend:

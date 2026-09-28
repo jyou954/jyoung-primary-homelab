@@ -33,8 +33,12 @@ services:
       - "traefik.http.routers.bookstack.tls.certresolver=stepca"
 
   bookstack-mariadb:
-    image: lscr.io/linuxserver/mariadb:latest
+    # Pinned: MariaDB major/minor upgrades need a manual upgrade step.
+    image: lscr.io/linuxserver/mariadb:11.4.10
     container_name: bookstack-mariadb
+    labels:
+      - "wud.display.name=BookStack Database"
+      - 'wud.tag.include=^11\.4\.\d+$$'
     restart: unless-stopped
     networks:
       - bookstack_internal

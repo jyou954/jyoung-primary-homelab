@@ -1,0 +1,13 @@
+services:
+  wud-socket-proxy:
+    labels:
+      net.unraid.docker.managed: 'composeman'
+      net.unraid.docker.icon: ''
+      net.unraid.docker.webui: ''
+      net.unraid.docker.shell: ''
+  wud:
+    labels:
+      net.unraid.docker.managed: 'composeman'
+      net.unraid.docker.icon: ''
+      net.unraid.docker.webui: 'https://wud.int.jyoung-primary.com'
+      net.unraid.docker.shell: ''

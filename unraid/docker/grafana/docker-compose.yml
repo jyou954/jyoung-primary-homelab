@@ -52,6 +52,9 @@ services:
     volumes:
       - '/proc:/host/proc:ro'
       - '/sys:/host/sys:ro'
+    labels:
+      - "wud.display.name=Node Exporter"
+      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
 
 networks:
   frontend:

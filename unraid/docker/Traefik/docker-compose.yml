@@ -5,6 +5,9 @@ services:
     image: lscr.io/linuxserver/socket-proxy:latest
     container_name: socket-proxy-traefik
     restart: unless-stopped
+    labels:
+      - "wud.display.name=Traefik Socket Proxy"
+      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
     read_only: true
     tmpfs:
       - /run

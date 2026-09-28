@@ -6,8 +6,8 @@ Started 2026-09-27. Tick things off as they're done.
 The weekly backup started 2026-09-27 ~17:05 and re-copies everything (~6 TB), so it takes many hours. A watcher on Unraid (`/root/install_waiter.sh`) swaps in the new backup script when it finishes.
 
 - [ ] Check `/var/log/synology_backup_install.log` on Unraid: expect `new script installed` and a `CANARY:` line (`KEPT` = mirror mode will work).
-- [ ] Commit the already-edited `unraid/scripts/synology_weekly_backup.sh`, `synology/README.md`, `unraid/README.md`.
-- [ ] Fix `unraid/README.md`: `/root/.ssh` is on the flash drive (`/boot/config/ssh/root`), not RAM.
+- [x] Commit the already-edited `unraid/scripts/synology_weekly_backup.sh`, `synology/README.md`, `unraid/README.md`.
+- [x] Fix `unraid/README.md`: `/root/.ssh` is on the flash drive (`/boot/config/ssh/root`), not RAM.
 - [ ] 2026-10-04 run: copy-only, sets `.state/adopted.*` markers on the NAS.
 - [ ] 2026-10-11 run: first mirror run. `.deleted/` should be small, no alerts.
 
@@ -19,6 +19,8 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [ ] After the backup finishes: restart HA (applies the pending proxy) → stop Docker and VM Manager → Settings → Network: VLAN 40 and 60 "IPv4 address assignment: None" (keep the VLANs) → Apply → start Docker and VMs
 - [ ] Verify: `10.0.40.5` / `10.0.60.5` unreachable from IoT; `haos.int…` works via Traefik; tablet works; VMs `hl-haos-01` and `hl-bi-01` (Blue Iris) up
 - [ ] Remove `10.0.40.5` from HA trusted proxies, restart HA
+- Also set VLAN 50 (`10.0.50.5`) and 51 (`10.0.51.5`) to None unless something needs them (security audit 2026-09-28).
+- No router rule needed for WUD → HA MQTT (`10.0.40.7:1883`): LAN → IoT is allowed and replies pass `BLOCK_IN` rule 30. Verified from the PC through the router, 2026-09-28. No HA integration uses Unraid's VLAN IPs.
 
 ## Network: next
 Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on this router ("Cannot delete rule set ... still in use").
@@ -50,6 +52,18 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [ ] es48 **0/35 ↔ 0/39 loop**: find what connects them (cable, small switch or bridged PC) and remove it; then name 0/35/0/39
 - [ ] es48 **0/43 "PC - Intel i9" at 10 Mbps** and **0/8 "Proxmox 03" at 100 Mbps**: reseat or replace cables
 - [ ] Remove switch user `claude` when done (password-only account): `configure`, `no username claude`, `exit`, `write memory` on both
+
+## Docker updates (WUD, set up 2026-09-28)
+Pending updates show in HA (Settings → Updates) and in WUD. Read release notes before pressing Install on anything below.
+- [ ] Immich v2 → v3 (major): read the release notes and upgrade steps, check the Immich DB backup is recent, then install `immich-server` and `immich-machine-learning` together
+- [ ] Traefik v3.6 → v3.7, Semaphore v2.17 → v2.19, Paperless Gotenberg 8.25 → 8.37, BookStack DB 11.4.10 → 11.4.12 (patch, within the pin)
+- [ ] Authentik: stopped cleanly on 2026-08-08 and has no autostart. Decide: start it again, or remove the stack and Homepage's Authentik widget
+- [ ] Add `wud.display.name` labels to the unlabelled compose services the next time each stack is edited (HA names are already set by `home-assistant/wud_entity_names.py`)
+- [ ] After 2026-10-05, on Unraid: delete the `docker-compose.yml.bak-20260928` copies, `render.sh.bak-20260928` and `/mnt/user/system/secrets.bak-20260928`; remove Semaphore's old anonymous volume `961b72e7…` (confirm first)
+- [ ] Delete unused old Docker networks: `paperless_paperless_internal`, `monitoring_monitoring_internal`, `homepage_socket_proxy`, `technitium_default`, `bws-render_default`, `wg0`
+
+## Security audit (2026-09-28)
+- [ ] Work through the findings, most urgent first. The report is kept outside the repo because it maps the weak spots.
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)

@@ -21,6 +21,8 @@ services:
       - "traefik.http.routers.homepage.tls=true"
       - "traefik.http.routers.homepage.tls.certresolver=stepca"
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+      - "wud.display.name=Homepage"
+      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
 
 networks:
   frontend:

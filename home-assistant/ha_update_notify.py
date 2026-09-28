@@ -9,6 +9,8 @@ Pieces:
   automation.notify_iphone_of_updates          one push listing all pending updates: Install all / Later
                                                (new update, debounced 5 min; weekly reminder Sun 10:00)
   automation.resume_updates_after_restart      on HA start, if the flag is on: clear it and continue the script
+  automation.notify_iphone_of_container_updates  separate push for Unraid container updates (update.wud_*);
+                                               these are never part of 'Install all'
 """
 import base64
 import json
@@ -88,9 +90,12 @@ else:
     print("helper: exists")
 
 HAS_BACKUP = "(state_attr(%s, 'supported_features') | int(0)) | bitwise_and(8) > 0"
-PENDING_OTHER = ("{{ states.update | selectattr('state', 'eq', 'on') | map(attribute='entity_id')"
-                 " | reject('in', ['%s', '%s']) | list }}" % (CORE, OS_))
-SUMMARY = ("{% for s in states.update | selectattr('state', 'eq', 'on') %}"
+# Unraid container updates (update.wud_*, from What's Up Docker) are left out of the HA flow:
+# they have their own push, and "Install all" must never update containers.
+PENDING = "states.update | rejectattr('entity_id', 'match', 'update.wud_') | selectattr('state', 'eq', 'on')"
+PENDING_OTHER = ("{{ %s | map(attribute='entity_id')"
+                 " | reject('in', ['%s', '%s']) | list }}" % (PENDING, CORE, OS_))
+SUMMARY = ("{% for s in " + PENDING + " %}"
            "{{ s.attributes.title or s.name }}: {{ s.attributes.installed_version }} -> {{ s.attributes.latest_version }}\n"
            "{% endfor %}")
 
@@ -134,7 +139,7 @@ script = {
          "default": [
              {"action": "input_boolean.turn_off", "target": {"entity_id": FLAG}},
              push("Updates finished",
-                  "{% set left = states.update | selectattr('state', 'eq', 'on') | map(attribute='name') | list %}"
+                  "{% set left = " + PENDING + " | map(attribute='name') | list %}"
                   "{{ 'All updates installed.' if not left else 'Still pending (install failed?): ' ~ left | join(', ') }}"),
              {"if": [{"condition": "template", "value_template": "{{ need_restart }}"}],
               "then": [push("Restarting Home Assistant", "Loading the updated custom integrations. Back in about a minute."),
@@ -143,7 +148,7 @@ script = {
 }
 print("script:", api("/config/script/config/install_pending_updates", script))
 
-updates = sorted(e for e in states if e.startswith("update."))
+updates = sorted(e for e in states if e.startswith("update.") and not e.startswith("update.wud_"))
 notify = {
     "id": "notify_iphone_of_updates",
     "alias": "Notify iPhone of updates",
@@ -158,12 +163,12 @@ notify = {
     "conditions": [{"condition": "template", "value_template": "{{ trigger.id == 'new' or now().weekday() == 6 }}"}],
     "actions": [
         {"if": [{"condition": "trigger", "id": "new"}], "then": [{"delay": "00:05:00"}]},
-        {"condition": "template", "value_template": "{{ states.update | selectattr('state', 'eq', 'on') | list | count > 0 }}"},
+        {"condition": "template", "value_template": "{{ %s | list | count > 0 }}" % PENDING},
         {"condition": "state", "entity_id": "script.install_pending_updates", "state": "off"},
         {"variables": {"act_install": "{{ 'UPDATES_INSTALL_' ~ context.id }}",
                        "act_later": "{{ 'UPDATES_LATER_' ~ context.id }}"}},
         {"action": PHONE, "data": {
-            "title": "{{ states.update | selectattr('state', 'eq', 'on') | list | count }} Home Assistant updates",
+            "title": "{{ %s | list | count }} Home Assistant updates" % PENDING,
             "message": SUMMARY + "Order: apps first, then Core (restart), then OS (reboot).",
             "data": {"tag": "ha_updates", "actions": [
                 {"action": "{{ act_install }}", "title": "Install all", "authenticationRequired": True},
@@ -177,6 +182,33 @@ notify = {
     ],
 }
 print("notify automation:", api("/config/automation/config/notify_iphone_of_updates", notify))
+
+CONTAINERS_PENDING = "states.update | selectattr('entity_id', 'match', 'update.wud_') | selectattr('state', 'eq', 'on')"
+container_notify = {
+    "id": "notify_iphone_of_container_updates",
+    "alias": "Notify iPhone of container updates",
+    "description": "One push listing Unraid container updates found by What's Up Docker. Waits 10 min so containers "
+                   "that update themselves drop off first. Tapping it opens Settings > Updates, where each "
+                   "container has its own Install button.",
+    "mode": "restart",
+    "triggers": [{"trigger": "state", "entity_id": "sensor.wud_container_update_count"}],
+    "conditions": [{"condition": "template", "value_template":
+                    "{{ trigger.from_state is not none and trigger.from_state.state not in ['unknown', 'unavailable']"
+                    " and trigger.to_state.state | int(0) > trigger.from_state.state | int(0) }}"}],
+    "actions": [
+        {"delay": "00:10:00"},
+        {"condition": "template", "value_template": "{{ %s | list | count > 0 }}" % CONTAINERS_PENDING},
+        {"action": PHONE, "data": {
+            "title": "{% set n = " + CONTAINERS_PENDING + " | list | count %}{{ n }} container update{{ 's' if n > 1 }}",
+            "message": "{% for s in " + CONTAINERS_PENDING + " %}"
+                       "{% set a = s.attributes %}{{ s.name }}: "
+                       "{{ 'new build of ' ~ a.installed_version if (a.latest_version or '') is match('sha256') "
+                       "else a.installed_version ~ ' -> ' ~ a.latest_version }}\n{% endfor %}",
+            "data": {"tag": "container_updates", "url": "/config/updates"}}},
+    ],
+}
+print("container notify automation:",
+      api("/config/automation/config/notify_iphone_of_container_updates", container_notify))
 
 resume = {
     "id": "resume_updates_after_restart",
@@ -200,7 +232,7 @@ except urllib.error.HTTPError as e:
 
 time.sleep(3)
 for e in (FLAG, "script.install_pending_updates", "automation.notify_iphone_of_updates",
-          "automation.resume_updates_after_restart"):
+          "automation.resume_updates_after_restart", "automation.notify_iphone_of_container_updates"):
     try:
         print("%-45s %s" % (e, api("/states/" + e)["state"]))
     except urllib.error.HTTPError:

@@ -25,7 +25,7 @@ if [ ! -f /.dockerenv ]; then
 fi
 
 # The stacks we render env files for. Add new ones here.
-STACKS="authentik bookstack grafana homepage immich paperless semaphore technitium traefik"
+STACKS="authentik bookstack grafana homepage immich paperless semaphore technitium traefik wud"
 
 export BWS_ACCESS_TOKEN="$(cat /run/secrets/access_token)"
 OUT=/output

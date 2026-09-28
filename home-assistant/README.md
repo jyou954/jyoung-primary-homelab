@@ -28,4 +28,5 @@ On Windows PowerShell use `cmd /c "ssh ... python3 - < script.py"` (PowerShell h
 - **Doorbell announcement** speaks on each speaker individually. Cast *groups* cut short clips off after the first syllable.
 - **Zigbee2MQTT** with the ZBT-2 needs `baudrate: 460800`, `adapter: ember`, `rtscts: true` (config: `/homeassistant/zigbee2mqtt/configuration.yaml`).
 - **`http:`** settings (Traefik proxy) live in HA's own storage, not `configuration.yaml`. Trusted proxies: Settings → System → Network, and they apply only after an HA restart.
-- **Backups:** daily, kept 3, to HA's disk and the Synology share `HABackup` (network storage `synology_haos_backup`). Needs EdgeRouter rule `BLOCK_IN` "Allow HA backups to Synology SMB". Keep the backup encryption key in Vaultwarden.
+- **Backups:** daily, kept 3, to HA's disk and the Synology share `HABackup` (network storage `synology_haos_backup`). Needs EdgeRouter rule `BLOCK_IN` "Allow HA backups to Synology SMB". Keep the backup encryption key in Bitwarden.
+- **SSH app is key-only** (no password, since 2026-09-28). Add your public key to the app's `authorized_keys` to log in.

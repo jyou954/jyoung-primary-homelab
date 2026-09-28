@@ -65,6 +65,13 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 
 ## Security audit (2026-09-28)
 - [ ] Work through the findings, most urgent first. The report is kept outside the repo because it maps the weak spots.
+- [x] HA SSH add-on: password removed, key-only (keys: `overlord@docker-01`, `claude@workstation`)
+- [x] Unraid share `unraid-usb` (flash backups): Secure → Private (overlord, jyoung RW; jaredyoung read). Guests can no longer read it
+- [x] Unbalanced plugin uninstalled (unused; web UI had no login)
+- [x] Vaultwarden stopped, autostart off (unused; data kept in `/mnt/user/appdata/vaultwarden`)
+- [ ] Change the Unraid user passwords (their hashes were in the guest-readable flash backups)
+- [ ] You: UPS card `http://10.0.3.14`: turn off Telnet and FTP, change the password
+- [ ] You: HA → Profile → Security: turn on TOTP for `overlord`
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)
@@ -73,7 +80,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 
 - [ ] Tablet: kiosk start page by IP (`http://10.0.40.7:8123/tablet-home/home`) so it survives Technitium outages
 - [ ] Tablet: hide Overview in the `younghome` sidebar; kiosk app "reload start URL on idle" (optional: HACS `kiosk-mode` to hide the header)
-- [ ] Save the HA backup encryption key in Vaultwarden (Settings → System → Backups → Settings → Encryption key)
+- [ ] Save the HA backup encryption key in your Bitwarden (cloud) vault (Settings → System → Backups → Settings → Encryption key). Vaultwarden is off.
 
 ## Housekeeping
 - [ ] After the next Unraid reboot: check NUT came up (`upsc -c ups@127.0.0.1` lists `127.0.0.1`)

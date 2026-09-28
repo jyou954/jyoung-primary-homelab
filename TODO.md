@@ -16,8 +16,10 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 
 - [x] HA trusted proxies: added `10.0.3.11` (pending until HA restarts)
 - [x] Unraid telnet off
-- [ ] After the backup finishes: restart HA (applies the pending proxy) → stop Docker and VM Manager → Settings → Network: VLAN 40 and 60 "IPv4 address assignment: None" (keep the VLANs) → Apply → start Docker and VMs
-- [ ] Verify: `10.0.40.5` / `10.0.60.5` unreachable from IoT; `haos.int…` works via Traefik; tablet works; VMs `hl-haos-01` and `hl-bi-01` (Blue Iris) up
+- [x] 2026-09-28: VLAN 40, 50, 51, 60 set to "IPv4 address assignment: None" (VLANs kept for the VM bridges). Verified from HA: Unraid unreachable from IoT; `haos.int` works via Traefik (HA trusts `10.0.3.11`); WUD → MQTT works via the router
+- [x] VNC passwords set on all three VMs (done while they were stopped)
+- [x] Blue Iris: editing the VM dropped its Windows disk (`vdisk1.img`); re-added as disk 1 (VirtIO, boot 1), WD Purple as disk 2. Recording again (~6 Mbit/s in, ~0.8 MB/s to the WD Purple). VM definition backups: `/mnt/user/vms/<vm>/<vm>.xml.bak-20260928`
+- [ ] Tablet: check it still loads the dashboard
 - [ ] Remove `10.0.40.5` from HA trusted proxies, restart HA
 - Also set VLAN 50 (`10.0.50.5`) and 51 (`10.0.51.5`) to None unless something needs them (security audit 2026-09-28).
 - No router rule needed for WUD → HA MQTT (`10.0.40.7:1883`): LAN → IoT is allowed and replies pass `BLOCK_IN` rule 30. Verified from the PC through the router, 2026-09-28. No HA integration uses Unraid's VLAN IPs.

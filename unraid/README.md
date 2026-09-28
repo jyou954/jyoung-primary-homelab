@@ -53,7 +53,9 @@ Create in Settings → User Scripts with the folder name, paste the file, set th
 - Every container runs from a Compose Manager project. `name`, `autostart`, `description`, `envpath` are Compose Manager's own files.
 - Secrets: stacks load `env_file: /mnt/user/system/secrets/<stack>.env`. **`bws-render` creates these from Bitwarden Secrets Manager** — run it first on a fresh server. Its access token is at `/mnt/user/appdata/bws/access-token` (not in repo).
 - Grafana's Prometheus datasource and the Node Exporter Full dashboard (ID 1860) were set up in the Grafana UI — not in repo.
-- **Running compose by hand:** always pass the project name from the `name` file, or Compose uses the `name:` inside the file and clashes with the running containers:
+- **After turning Docker off and on** (Settings → Docker), compose stacks do **not** start by themselves; only `restart: always` containers do. Start each stack with Compose Up (or ask me).
+- **Editing a VM in the form view can drop disks.** On 2026-09-28 the Blue Iris VM lost its Windows disk when only the VNC password was changed. Check the disk list before clicking Update; definition backups are in `/mnt/user/vms/<vm>/`.
+- **Running compose by hand:** always pass the project name from the `name` file (Compose Manager turns `-` into `_`, e.g. `unifi-controller` runs as `unifi_controller`), or Compose uses the `name:` inside the file and clashes with the running containers:
   `P=/boot/config/plugins/compose.manager/projects/<project>; docker compose -p "$(cat $P/name)" -f $P/docker-compose.yml -f $P/docker-compose.override.yml --project-directory $P up -d <service>`
 
 ### Container updates (What's Up Docker)

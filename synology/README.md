@@ -2,6 +2,8 @@
 
 Backup target for Unraid. Unraid mounts `//10.0.3.13/Backup` at `/mnt/remotes/synology_backup_point` and pushes to it every Sunday 04:30 (`unraid/scripts/synology_weekly_backup.sh`).
 
+**SSH is key-only** (since 2026-09-29): log in as `jyoung` with the `overlord_ed25519` key (Bitwarden). Changed in `/etc/ssh/sshd_config` (backup `.bak-20260929`); **DSM can reset it after an update or if SSH is toggled in Control Panel**, so check `sshd -T | grep passwordauthentication` afterwards. Lost key: log in to DSM (web) and re-enable password login in Control Panel → Terminal & SNMP.
+
 SFTP is off on the NAS, so `scp` to it fails. Copy files through Unraid's mount instead: `scp <file> root@10.0.3.11:/mnt/remotes/synology_backup_point/`.
 
 ## Where files go

@@ -90,6 +90,8 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] UPS card: SNMPv1 off, HTTPS on; `https://ups.int.jyoung-primary.com` works with a trusted cert. Optional: turn off its HTTP (port 80). Change its login password if it's still the default
 - [x] Prometheus: removed the two dead lab `node_exporter` targets (`10.0.51.102`, `10.0.51.254`); add them back when the lab returns
 - [x] HA TOTP on for `overlord`
+- [x] Key-only SSH on Unraid, NAS, router and HA (2026-09-29); `overlord_ed25519` key in the Bitwarden vault. Router: `set service ssh disable-password-authentication`, key on user `overlord`
+- [ ] MacBook: use the same key via Bitwarden Desktop's SSH agent (or copy it to `~/.ssh`, `chmod 600`)
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)

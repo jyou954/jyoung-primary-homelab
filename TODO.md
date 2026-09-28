@@ -58,7 +58,8 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Immich v2 → v3.2.2 (2026-09-28). Migrations OK, 12983 assets unchanged. Pre-upgrade dump: `/mnt/user/appdata/immich/immich-db-before-v3-20260928.sql.gz`; old `.env` at `.env.bak-20260928`
 - [ ] Immich: update the iPhone app; optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
 - [x] Traefik v3.7, Semaphore v2.19.14, Gotenberg 8.37, BookStack DB 11.4.12 (installed from HA 2026-09-28; compose files updated to match)
-- [ ] Authentik 2026.2.2 → 2026.8.x: do it deliberately. Read the release notes for each version in between, dump the DB (`authentik-db-20260928.sql.gz` exists), then change the tag in compose
+- [x] Authentik 2026.2.2 → 2026.5.7 → 2026.8.3 (2026-09-28, one release at a time as Authentik requires). Migrations 692 → 777, no errors. Pre-upgrade dump: `authentik-db-before-2026.5-20260928.sql.gz`
+- [ ] Authentik no longer uses Redis (no log mentions): consider removing `authentik-redis` and `AUTHENTIK_REDIS__HOST` next time the stack is edited (check the current compose.yml from goauthentik.io first)
 - [x] WUD made report-only (no update trigger, read-only socket proxy). Updates are approved by hand via Compose Manager → Update Stack
 - [ ] Remove the leftover `wud.trigger.include=docker.autoupdate,mqtt.ha` labels (homepage, grafana node_exporter, paperless tika, Traefik and Authentik socket proxies) next time each stack is edited
 - [x] Authentik: had been stopped since 2026-08-08. Started again with autostart on (2026-09-28)

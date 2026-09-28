@@ -66,6 +66,7 @@ Create in Settings → User Scripts with the folder name, paste the file, set th
 2. Tag bump (e.g. `v3.6` → `v3.7`): change the tag in the stack's compose file, here and on Unraid.
 3. Unraid → Docker → Compose → the stack → **Update Stack** (pulls and recreates from the compose file, so compose stays the source of truth).
 4. Safety net: Appdata Backup archives all appdata nightly at 00:00 (keeps 3); Immich also dumps its DB nightly.
+5. **Authentik: one release at a time** (e.g. 2026.2 → 2026.5 → 2026.8, latest patch of each); its release notes say skipping is not allowed. `authentik-server` and `authentik-worker` must always have the same tag.
 
 | Label on a service | Effect |
 |---|---|

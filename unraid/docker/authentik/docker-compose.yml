@@ -73,7 +73,7 @@ services:
       - /mnt/user/appdata/authentik/redis:/data
 
   authentik-server:
-    image: ghcr.io/goauthentik/server:2026.2.2
+    image: ghcr.io/goauthentik/server:2026.8.3
     container_name: authentik-server
     restart: unless-stopped
     security_opt:
@@ -113,7 +113,7 @@ services:
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
 
   authentik-worker:
-    image: ghcr.io/goauthentik/server:2026.2.2
+    image: ghcr.io/goauthentik/server:2026.8.3
     container_name: authentik-worker
     restart: unless-stopped
     security_opt:

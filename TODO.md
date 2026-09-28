@@ -96,7 +96,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 
 - [ ] Tablet: kiosk start page by IP (`http://10.0.40.7:8123/tablet-home/home`) so it survives Technitium outages
 - [ ] Tablet: hide Overview in the `younghome` sidebar; kiosk app "reload start URL on idle" (optional: HACS `kiosk-mode` to hide the header)
-- [ ] Save the HA backup encryption key in your Bitwarden (cloud) vault (Settings → System → Backups → Settings → Encryption key). Vaultwarden is off.
+- [x] HA backup encryption key saved in Bitwarden
 
 ## Housekeeping
 - [ ] After the next Unraid reboot: check NUT came up (`upsc -c ups@127.0.0.1` lists `127.0.0.1`)

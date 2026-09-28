@@ -22,7 +22,7 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [x] CA VM `unraid-int-ca` had also lost its disk in the same VNC-password edit (sat at the UEFI shell; all `*.int` certs would have expired within 24 h). Disk re-added via virsh (`/mnt/vm-pool/vms/unraid-int-ca/vdisk1.img`, VirtIO, boot 1); step-ca up
 - [x] Blue Iris behind Traefik: `https://blueiris.int.jyoung-primary.com` (`dynamic/blueiris.yml`, Technitium A record)
 - [x] Blue Iris disk monitoring: `windows_exporter` 0.31.8 in the VM (firewall: only `10.0.3.11`), Prometheus job `blue-iris`, Homepage card (D: free / % used)
-- [ ] You: Grafana → Dashboards → New → Import → ID `14694` → Prometheus → Import (auto-import failed)
+- [x] Grafana: "Windows Exporter Dashboard 2025 (v0.31+ compatible)", ID `23942` (the older 14694 doesn't match current metric names)
 - [ ] You: change the Grafana admin password (it was in a helper script and is in the chat transcript); save it in Bitwarden
 - [ ] Tablet: check it still loads the dashboard
 - [ ] Remove `10.0.40.5` from HA trusted proxies, restart HA

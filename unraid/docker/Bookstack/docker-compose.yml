@@ -26,6 +26,7 @@ services:
     volumes:
       - /mnt/user/appdata/bookstack/config:/config
     labels:
+      - "wud.display.name=BookStack"
       - "traefik.enable=true"
       - "traefik.http.routers.bookstack.rule=Host(`bookstack.int.jyoung-primary.com`)"
       - "traefik.http.routers.bookstack.entrypoints=websecure"

@@ -30,6 +30,7 @@ services:
     volumes:
       - /mnt/user/appdata/semaphore/requirements.txt:/etc/semaphore/requirements.txt
     labels:
+      - "wud.display.name=Semaphore"
       - "traefik.enable=true"
       - "traefik.http.routers.semaphore.rule=Host(`semaphore.int.jyoung-primary.com`)"
       - "traefik.http.routers.semaphore.entrypoints=websecure"

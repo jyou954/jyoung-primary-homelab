@@ -31,6 +31,7 @@ services:
       - /mnt/user/docker-data/paperless-ngx/export:/usr/src/paperless/export
       - /mnt/user/docker-data/paperless-ngx/consume:/usr/src/paperless/consume
     labels:
+      - "wud.display.name=Paperless"
       - "traefik.enable=true"
       - "traefik.http.routers.paperless.rule=Host(`paperless.int.jyoung-primary.com`)"
       - "traefik.http.routers.paperless.entrypoints=websecure"
@@ -41,6 +42,8 @@ services:
   paperless-postgresql:
     image: docker.io/library/postgres:18
     container_name: paperless-postgresql
+    labels:
+      - "wud.display.name=Paperless Database"
     restart: unless-stopped
     networks:
       - paperless_internal
@@ -55,6 +58,8 @@ services:
   paperless-redis:
     image: docker.io/library/redis:8
     container_name: paperless-redis
+    labels:
+      - "wud.display.name=Paperless Redis"
     restart: unless-stopped
     networks:
       - paperless_internal
@@ -64,6 +69,8 @@ services:
   paperless-gotenberg:
     image: docker.io/gotenberg/gotenberg:8.37
     container_name: paperless-gotenberg
+    labels:
+      - "wud.display.name=Paperless Gotenberg"
     restart: unless-stopped
     networks:
       - paperless_internal
@@ -81,7 +88,6 @@ services:
     labels:
       - "wud.display.name=Paperless Tika"
       - "wud.watch.digest=true"
-      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
 
 networks:
   frontend:

@@ -7,7 +7,6 @@ services:
     restart: unless-stopped
     labels:
       - "wud.display.name=Authentik Socket Proxy"
-      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
     read_only: true
     tmpfs:
       - /run
@@ -54,23 +53,7 @@ services:
     volumes:
       - /mnt/user/appdata/authentik/postgresql:/var/lib/postgresql/data
 
-  authentik-redis:
-    image: docker.io/library/redis:alpine
-    container_name: authentik-redis
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - authentik_internal
-    command: --save 60 1 --loglevel warning
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      interval: 30s
-      timeout: 3s
-      retries: 5
-      start_period: 20s
-    volumes:
-      - /mnt/user/appdata/authentik/redis:/data
+  # No Redis: Authentik 2025.10+ keeps its cache and task queue in Postgres.
 
   authentik-server:
     image: ghcr.io/goauthentik/server:2026.8.3
@@ -82,8 +65,6 @@ services:
     depends_on:
       authentik-postgresql:
         condition: service_healthy
-      authentik-redis:
-        condition: service_healthy
     networks:
       - frontend
       - authentik_internal
@@ -94,7 +75,6 @@ services:
       - AUTHENTIK_POSTGRESQL__HOST=authentik-postgresql
       - AUTHENTIK_POSTGRESQL__USER=authentik
       - AUTHENTIK_POSTGRESQL__NAME=authentik
-      - AUTHENTIK_REDIS__HOST=authentik-redis
     healthcheck:
       test: ["CMD", "ak", "healthcheck"]
       interval: 30s
@@ -105,6 +85,7 @@ services:
       - /mnt/user/appdata/authentik/data:/data
       - /mnt/user/appdata/authentik/custom-templates:/templates
     labels:
+      - "wud.display.name=Authentik"
       - "traefik.enable=true"
       - "traefik.http.routers.authentik.rule=Host(`authentik.int.jyoung-primary.com`)"
       - "traefik.http.routers.authentik.entrypoints=websecure"
@@ -119,10 +100,10 @@ services:
     security_opt:
       - no-new-privileges:true
     command: worker
+    labels:
+      - "wud.display.name=Authentik Worker"
     depends_on:
       authentik-postgresql:
-        condition: service_healthy
-      authentik-redis:
         condition: service_healthy
       authentik-server:
         condition: service_healthy
@@ -138,7 +119,6 @@ services:
       - AUTHENTIK_POSTGRESQL__HOST=authentik-postgresql
       - AUTHENTIK_POSTGRESQL__USER=authentik
       - AUTHENTIK_POSTGRESQL__NAME=authentik
-      - AUTHENTIK_REDIS__HOST=authentik-redis
       - DOCKER_HOST=tcp://authentik-socket-proxy:2375
     volumes:
       - /mnt/user/appdata/authentik/data:/data

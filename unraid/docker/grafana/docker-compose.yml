@@ -16,6 +16,7 @@ services:
     volumes:
       - /mnt/user/appdata/grafana:/var/lib/grafana
     labels:
+      - "wud.display.name=Grafana"
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`grafana.int.jyoung-primary.com`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
@@ -34,6 +35,7 @@ services:
       - /mnt/user/appdata/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - /mnt/user/appdata/prometheus/data:/prometheus
     labels:
+      - "wud.display.name=Prometheus"
       - "traefik.enable=true"
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.int.jyoung-primary.com`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
@@ -54,7 +56,6 @@ services:
       - '/sys:/host/sys:ro'
     labels:
       - "wud.display.name=Node Exporter"
-      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
 
 networks:
   frontend:

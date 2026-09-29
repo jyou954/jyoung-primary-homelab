@@ -12,6 +12,7 @@ services:
     volumes:
       - /mnt/user/appdata/vaultwarden/data/:/data/
     labels:
+      - "wud.display.name=Vaultwarden"
       - "traefik.enable=true"
       - "traefik.http.routers.vaultwarden.rule=Host(`vw.int.jyoung-primary.com`)"
       - "traefik.http.routers.vaultwarden.entrypoints=websecure"

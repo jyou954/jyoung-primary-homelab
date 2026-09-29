@@ -71,13 +71,13 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [ ] Immich: optionally optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
 - [x] Traefik v3.7, Semaphore v2.19.14, Gotenberg 8.37, BookStack DB 11.4.12 (installed from HA 2026-09-28; compose files updated to match)
 - [x] Authentik 2026.2.2 → 2026.5.7 → 2026.8.3 (2026-09-28, one release at a time as Authentik requires). Migrations 692 → 777, no errors. Pre-upgrade dump: `authentik-db-before-2026.5-20260928.sql.gz`
-- [ ] Authentik no longer uses Redis (no log mentions): consider removing `authentik-redis` and `AUTHENTIK_REDIS__HOST` next time the stack is edited (check the current compose.yml from goauthentik.io first)
+- [x] Authentik Redis removed (2026-09-29; unused since 2025.10: no connections, no keys). Leftover folder `/mnt/user/appdata/authentik/redis` can be deleted
+- [x] Git identity set on the PC (`jyoung <young.aze+claude@hotmail.com>`); 6 unused Docker networks deleted
 - [x] WUD made report-only (no update trigger, read-only socket proxy). Updates are approved by hand via Compose Manager → Update Stack
-- [ ] Remove the leftover `wud.trigger.include=docker.autoupdate,mqtt.ha` labels (homepage, grafana node_exporter, paperless tika, Traefik and Authentik socket proxies) next time each stack is edited
+- [x] Leftover `wud.trigger.include=docker.autoupdate,mqtt.ha` labels removed
 - [x] Authentik: had been stopped since 2026-08-08. Started again with autostart on (2026-09-28)
-- [ ] Add `wud.display.name` labels to the unlabelled compose services the next time each stack is edited (HA names are already set by `home-assistant/wud_entity_names.py`)
+- [x] Every container has a `wud.display.name` label
 - [ ] After 2026-10-05, on Unraid: delete the `docker-compose.yml.bak-20260928` copies, `render.sh.bak-20260928`, Immich's `.env.bak-20260928` and `/mnt/user/system/secrets.bak-20260928`; remove Semaphore's old anonymous volume `961b72e7…` (confirm first)
-- [ ] Delete unused old Docker networks: `paperless_paperless_internal`, `monitoring_monitoring_internal`, `homepage_socket_proxy`, `technitium_default`, `bws-render_default`, `wg0`
 
 ## Security audit (2026-09-28)
 - [ ] Work through the findings, most urgent first. The report is kept outside the repo because it maps the weak spots.
@@ -111,7 +111,6 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 ## Housekeeping
 - [ ] After the next Unraid reboot: check NUT came up (`upsc -c ups@127.0.0.1` lists `127.0.0.1`)
 - [x] Deleted `/root/install_waiter.sh` on Unraid (watcher done)
-- [ ] Set git identity on the PC: `git config --global user.name "jyoung"` and `user.email`
 - Note: git on this PC uses Windows OpenSSH (`git config --global core.sshCommand`), needed for the `overlord_ed25519` key
 - [ ] `claude_ed25519` key expires on Unraid, Synology and HA on **2026-12-31** (`expiry-time`). Renew or remove the `authorized_keys` lines before then.
 

@@ -21,6 +21,7 @@ services:
     volumes:
       - /mnt/user/appdata/unifi/data:/unifi
     labels:
+      - "wud.display.name=UniFi Controller"
       - "traefik.enable=true"
       - "traefik.http.routers.unifi.rule=Host(`unifi.int.jyoung-primary.com`)"
       - "traefik.http.routers.unifi.entrypoints=websecure"

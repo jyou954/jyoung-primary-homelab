@@ -7,7 +7,6 @@ services:
     restart: unless-stopped
     labels:
       - "wud.display.name=Traefik Socket Proxy"
-      - "wud.trigger.include=docker.autoupdate,mqtt.ha"
     read_only: true
     tmpfs:
       - /run
@@ -91,6 +90,7 @@ services:
       # Metrics
       - "--metrics.prometheus=true"
     labels:
+      - "wud.display.name=Traefik"
       - "traefik.enable=true"
       # Dashboard router
       - "traefik.http.routers.dashboard.rule=Host(`unraid-traefik.int.jyoung-primary.com`)"

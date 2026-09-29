@@ -95,8 +95,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [ ] MacBook: use the same key via Bitwarden Desktop's SSH agent (or copy it to `~/.ssh`, `chmod 600`)
 - [x] Hardening 2026-09-29: switches HTTP off (HTTPS only, saved) · router: DNS no longer listens on WAN, No-IP DDNS removed, dead name server removed, Management/K8s DHCP ranges start at .2, stale 192.168.0.0/16 pool deleted · Unraid SMB `ntlm auth = ntlmv2-only` (`/boot/config/smb-extra.conf`) · `isoShare` NFS private, `10.0.50.0/24` only · HA trusted proxies = `10.0.3.11` only (restarted)
 - [ ] You: delete the `jyou954.ddns.net` hostname in your No-IP account (it points at a stranger's IP)
-- [ ] Optional: HA login banning (`login_attempts_threshold` is -1 = off; set 5, needs an HA restart)
-- [ ] Optional: Unraid web UI HTTPS (low value now that the UI is LAN/Tailscale only; Traefik route would need `https://10.0.3.11:4443`)
+- Decided 2026-09-29, not doing: HA login banning (TOTP covers it; bans would lock out family devices) and Unraid web UI HTTPS (use `https://unraid.int…`; plain `http://10.0.3.11:8180` stays as the way in when Docker/Traefik is down)
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)

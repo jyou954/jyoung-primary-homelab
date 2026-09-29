@@ -101,7 +101,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 ## Home Assistant
 - [x] HA VM crashed 2026-09-29 22:47 (QEMU USB assertion while the ZBT-2 reset; the ZBT-2 was attached twice via a leftover ConBee entry) and couldn't restart because the unplugged ConBee was required. Fixed 2026-09-30: ConBee entries removed from the VM and USB Manager, ZBT-2 matched by ID only and optional, so a missing stick never blocks HA. Backups `/mnt/user/vms/hl-haos-01/*.bak-20260930*`
 - [ ] You: Appdata Backup → immich-machine-learning → exclude `/cache` (named volume `immich_model-cache`, only re-downloadable ML models) to stop the nightly "does NOT exist" email
-- [ ] Consider: HA doesn't restart by itself after a VM crash. Optional watchdog user script that starts `hl-haos-01` if it's shut off
+- [x] VM watchdog user script (every 5 min): restarts HA, Blue Iris or the CA VM after a crash, never after a normal shutdown; max 3/day; notifies
 - [x] Zigbee2MQTT on the ZBT-2: fresh network with a regenerated key (2026-09-29; old key had been printed in chat). No devices were ever paired, so nothing to re-pair. Pair new devices via Z2M → Permit join
 - ConBee II: Zigbee-only, **can't do Z-Wave**. Keep as a spare; only set up ZHA on it if a device Z2M doesn't support turns up (use a different channel, e.g. 15 or 20; Z2M is on 25)
 - [ ] Z-Wave (if wanted): buy a Z-Wave stick, e.g. Home Assistant Connect ZWA-2, **ANZ 921.4 MHz version**

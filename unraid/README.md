@@ -32,6 +32,7 @@ Create in Settings → User Scripts with the folder name, paste the file, set th
 | `restic_daily_backup.sh` | `restic_daily_backup` | **Disabled** (see Known issues) |
 | `synology_weekly_backup.sh` | `synology_weekly_backup` | Weekly (Sun 04:30) |
 | `truenas_weekly_backup.sh` | `truenas_weekly_backup` | Weekly (Sun 04:30); fails while TrueNAS is offline |
+| `vm_watchdog.sh` | `vm_watchdog` | Custom `*/5 * * * *`: restarts `hl-haos-01`, `hl-bi-01`, `unraid-int-ca` only if libvirt logged a **crash** (not a normal shutdown); max 3/day per VM; Unraid notification each time. Test: `DRYRUN=1 bash script` |
 
 ### Backups
 | When | What | Where |

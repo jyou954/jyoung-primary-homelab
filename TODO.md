@@ -25,7 +25,7 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [x] Grafana: "Windows Exporter Dashboard 2025 (v0.31+ compatible)", ID `23942` (the older 14694 doesn't match current metric names)
 - [x] Grafana admin password changed (old one was in a helper script / chat transcript)
 - [ ] Tablet: check it still loads the dashboard
-- [ ] Remove `10.0.40.5` from HA trusted proxies, restart HA
+- [x] Removed `10.0.40.5` from HA trusted proxies, restarted HA (2026-09-29)
 - Also set VLAN 50 (`10.0.50.5`) and 51 (`10.0.51.5`) to None unless something needs them (security audit 2026-09-28).
 - No router rule needed for WUD → HA MQTT (`10.0.40.7:1883`): LAN → IoT is allowed and replies pass `BLOCK_IN` rule 30. Verified from the PC through the router, 2026-09-28. No HA integration uses Unraid's VLAN IPs.
 
@@ -93,6 +93,10 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] HA TOTP on for `overlord`
 - [x] Key-only SSH on Unraid, NAS, router and HA (2026-09-29); `overlord_ed25519` key in the Bitwarden vault. Router: `set service ssh disable-password-authentication`, key on user `overlord`
 - [ ] MacBook: use the same key via Bitwarden Desktop's SSH agent (or copy it to `~/.ssh`, `chmod 600`)
+- [x] Hardening 2026-09-29: switches HTTP off (HTTPS only, saved) · router: DNS no longer listens on WAN, No-IP DDNS removed, dead name server removed, Management/K8s DHCP ranges start at .2, stale 192.168.0.0/16 pool deleted · Unraid SMB `ntlm auth = ntlmv2-only` (`/boot/config/smb-extra.conf`) · `isoShare` NFS private, `10.0.50.0/24` only · HA trusted proxies = `10.0.3.11` only (restarted)
+- [ ] You: delete the `jyou954.ddns.net` hostname in your No-IP account (it points at a stranger's IP)
+- [ ] Optional: HA login banning (`login_attempts_threshold` is -1 = off; set 5, needs an HA restart)
+- [ ] Optional: Unraid web UI HTTPS (low value now that the UI is LAN/Tailscale only; Traefik route would need `https://10.0.3.11:4443`)
 
 ## Home Assistant
 - [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)

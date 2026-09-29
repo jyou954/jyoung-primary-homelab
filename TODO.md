@@ -67,7 +67,8 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] iPhone (`10.0.3.236`, "Jareds-iPhone") trusts the internal root CA (`root-ca-01 Root CA`, SHA-256 `BF:35:1A:72…00:2F:34:B5`); Immich app uses `https://immich.int.jyoung-primary.com`
 - [x] Tailscale (2026-09-29): Unraid advertises only `10.0.3.11/32` (approved; was 10.0.10–70.0/24), Tailscale SSH off, stale devices removed (truenas-scale, workstation, jareds-macbook-pro). Split DNS `int.jyoung-primary.com → 10.0.3.11` gives every `*.int` site from away
 - [ ] iPhone: Tailscale app shows offline since mid-August; open it and connect (log in again if asked), then test Immich with Wi-Fi off
-- [ ] Immich: update the iPhone app; optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
+- [x] Immich iPhone app works (at home)
+- [ ] Immich: optionally optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
 - [x] Traefik v3.7, Semaphore v2.19.14, Gotenberg 8.37, BookStack DB 11.4.12 (installed from HA 2026-09-28; compose files updated to match)
 - [x] Authentik 2026.2.2 → 2026.5.7 → 2026.8.3 (2026-09-28, one release at a time as Authentik requires). Migrations 692 → 777, no errors. Pre-upgrade dump: `authentik-db-before-2026.5-20260928.sql.gz`
 - [ ] Authentik no longer uses Redis (no log mentions): consider removing `authentik-redis` and `AUTHENTIK_REDIS__HOST` next time the stack is edited (check the current compose.yml from goauthentik.io first)
@@ -98,8 +99,9 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - Decided 2026-09-29, not doing: HA login banning (TOTP covers it; bans would lock out family devices) and Unraid web UI HTTPS (use `https://unraid.int…`; plain `http://10.0.3.11:8180` stays as the way in when Docker/Traefik is down)
 
 ## Home Assistant
-- [ ] Re-pair Zigbee devices in Zigbee2MQTT (the ZBT-2 formed a new network on 2026-09-27)
-- [ ] Unplug the ConBee II if unused
+- [x] Zigbee2MQTT on the ZBT-2: fresh network with a regenerated key (2026-09-29; old key had been printed in chat). No devices were ever paired, so nothing to re-pair. Pair new devices via Z2M → Permit join
+- ConBee II: Zigbee-only, **can't do Z-Wave**. Keep as a spare; only set up ZHA on it if a device Z2M doesn't support turns up (use a different channel, e.g. 15 or 20; Z2M is on 25)
+- [ ] Z-Wave (if wanted): buy a Z-Wave stick, e.g. Home Assistant Connect ZWA-2, **ANZ 921.4 MHz version**
 - [x] Save the dashboard / rename / update-flow scripts into this repo (`home-assistant/`)
 
 - [ ] Tablet: kiosk start page by IP (`http://10.0.40.7:8123/tablet-home/home`) so it survives Technitium outages

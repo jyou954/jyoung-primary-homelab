@@ -22,11 +22,16 @@ On Windows PowerShell use `cmd /c "ssh ... python3 - < script.py"` (PowerShell h
 | `ha_doorbell.py` | Doorbell automation: all speakers to 100%, announce on each speaker, restore volumes (50% for speakers that were off). Saves and validates only; never rings. | no args |
 | `ha_rename.py` | Readable display names for 86 entities (entity IDs unchanged). **Already applied 2026-09-27.** | dry run by default; `--apply` |
 | `entity_names_before_2026-09-27.json` | Names before `ha_rename.py`, for undoing individual renames. | — |
-| `automations.yaml`, `scripts.yaml` | Snapshot of HA's automations and scripts (doorbell announcement, update flow). HA is the source of truth; re-export after editing in the UI. | — |
+| `automations.yaml`, `scripts.yaml` | Snapshot of HA's automations and scripts (doorbell announcement, update flow, container update push, door-sensor lights). HA is the source of truth; re-export after editing in the UI. | — |
 
 ## Notes
 - **Doorbell announcement** speaks on each speaker individually. Cast *groups* cut short clips off after the first syllable.
 - **Zigbee2MQTT** with the ZBT-2 needs `baudrate: 460800`, `adapter: ember`, `rtscts: true` (config: `/homeassistant/zigbee2mqtt/configuration.yaml`). Channel 25. The network key lives in that file and in `coordinator_backup.json`: never print them (regenerated 2026-09-29 after a leak; backup of the empty old network in `backup-20260929-rekey/`).
+- **Door sensors** (Aqara MCCGQ11LM on Z2M; `on` = open): `binary_sensor.front_door_sensor_contact` (`0x00158d0006c3bed2`) and `binary_sensor.back_door_sensor_contact` (`0x00158d0006c39cf1`). Renaming a device in Z2M with "update HA entity ID" changes the entity ID, so fix the automation triggers afterwards.
+  - **Front door at night:** downstairs hallway lights on; after 2 min they go off once the Hue hallway motion sensor (`binary_sensor.downstairs_hallway_motion_sensor_motion`) has been clear for 1 min, or 15 min after the door opened at the latest. The Hue app may run its own motion rule for these lights, which HA can't see.
+  - **Back door at night:** dining room lights (`light.dining_room_lights`, all four) on for 2 min.
+  - Both: "night" = `sun.sun` below the horizon (follows Sydney sunset and daylight saving), nothing on close, lights left alone if already on, reopening restarts the timer.
+  - Aqara pairing: hold the button about 5 s until the blue light blinks, then tap every 2 s for about 30 s. Holding it again after joining makes it leave the network.
 - **ConBee II** is Zigbee-only (not Z-Wave): unplugged spare, for ZHA only if Z2M can't handle a device. To use it again, add it to the VM with `startupPolicy='optional'` (never as a required device or a serial passthrough: a missing stick then stops HA from booting, as on 2026-09-29).
 - **USB passthrough:** the VM has one USB entry, the ZBT-2 matched by vendor/product (`303a:831a`), `startupPolicy='optional'`. Keep exactly one entry per stick; a duplicate attach made QEMU crash.
 - **`http:`** settings (Traefik proxy) live in HA's own storage, not `configuration.yaml`. Trusted proxies: Settings → System → Network, and they apply only after an HA restart. Currently only `10.0.3.11` (Traefik on Unraid).

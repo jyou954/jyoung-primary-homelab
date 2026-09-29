@@ -90,8 +90,8 @@
     then:
     - delay: 00:05:00
   - condition: template
-    value_template: '{{ states.update | selectattr(''state'', ''eq'', ''on'') | list
-      | count > 0 }}'
+    value_template: '{{ states.update | rejectattr(''entity_id'', ''match'', ''update.wud_'')
+      | selectattr(''state'', ''eq'', ''on'') | list | count > 0 }}'
   - condition: state
     entity_id: script.install_pending_updates
     state: 'off'
@@ -100,11 +100,12 @@
       act_later: '{{ ''UPDATES_LATER_'' ~ context.id }}'
   - action: notify.mobile_app_jareds_iphone
     data:
-      title: '{{ states.update | selectattr(''state'', ''eq'', ''on'') | list | count
-        }} Home Assistant updates'
-      message: '{% for s in states.update | selectattr(''state'', ''eq'', ''on'')
-        %}{{ s.attributes.title or s.name }}: {{ s.attributes.installed_version }}
-        -> {{ s.attributes.latest_version }}
+      title: '{{ states.update | rejectattr(''entity_id'', ''match'', ''update.wud_'')
+        | selectattr(''state'', ''eq'', ''on'') | list | count }} Home Assistant updates'
+      message: '{% for s in states.update | rejectattr(''entity_id'', ''match'', ''update.wud_'')
+        | selectattr(''state'', ''eq'', ''on'') %}{{ s.attributes.title or s.name
+        }}: {{ s.attributes.installed_version }} -> {{ s.attributes.latest_version
+        }}
 
         {% endfor %}Order: apps first, then Core (restart), then OS (reboot).'
       data:
@@ -151,3 +152,108 @@
     target:
       entity_id: script.install_pending_updates
   mode: single
+- id: notify_iphone_of_container_updates
+  alias: Notify iPhone of container updates
+  description: One push listing Unraid container updates found by What's Up Docker
+    (report-only). Waits 10 min so bursts collapse into one push. Tapping it opens
+    the WUD page. Updates are approved by hand (Compose Manager > Update Stack); HA's
+    Install buttons do nothing.
+  triggers:
+  - trigger: state
+    entity_id: sensor.wud_container_update_count
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.from_state is not none and trigger.from_state.state
+      not in [''unknown'', ''unavailable''] and trigger.to_state.state | int(0) >
+      trigger.from_state.state | int(0) }}'
+  actions:
+  - delay: 00:10:00
+  - condition: template
+    value_template: '{{ states.update | selectattr(''entity_id'', ''match'', ''update.wud_'')
+      | selectattr(''state'', ''eq'', ''on'') | list | count > 0 }}'
+  - action: notify.mobile_app_jareds_iphone
+    data:
+      title: '{% set n = states.update | selectattr(''entity_id'', ''match'', ''update.wud_'')
+        | selectattr(''state'', ''eq'', ''on'') | list | count %}{{ n }} container
+        update{{ ''s'' if n > 1 }}'
+      message: '{% for s in states.update | selectattr(''entity_id'', ''match'', ''update.wud_'')
+        | selectattr(''state'', ''eq'', ''on'') %}{% set a = s.attributes %}{{ s.name
+        }}: {{ ''new build of '' ~ a.installed_version if (a.latest_version or '''')
+        is match(''sha256'') else a.installed_version ~ '' -> '' ~ a.latest_version
+        }}
+
+        {% endfor %}'
+      data:
+        tag: container_updates
+        url: https://wud.int.jyoung-primary.com
+  mode: restart
+- id: front_door_hallway_lights_at_night
+  alias: 'Front door opened at night: hallway lights'
+  description: When the front door opens after sunset (sun below the horizon; follows
+    Sydney sunset and daylight saving automatically), turn the downstairs hallway
+    lights on. After 2 minutes they turn off, but only once the hallway motion sensor
+    has seen no motion for 1 minute (if motion keeps being reported, off 15 minutes
+    after the door opened anyway). Opening the door again restarts it. Does nothing
+    in the day, nothing on close, and leaves the lights alone if they were already
+    on.
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.front_door_sensor_contact
+    from: 'off'
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  - condition: template
+    value_template: '{{ is_state(''light.downstairs_hallway_lights'', ''off'') or
+      (this.attributes.current | int(0)) > 0 }}'
+  actions:
+  - action: light.turn_on
+    target:
+      entity_id: light.downstairs_hallway_lights
+  - delay: 00:02:00
+  - repeat:
+      until:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: binary_sensor.downstairs_hallway_motion_sensor_motion
+          state: 'off'
+          for: 00:01:00
+        - condition: template
+          value_template: '{{ repeat.index >= 52 }}'
+      sequence:
+      - delay: 00:00:15
+  - action: light.turn_off
+    target:
+      entity_id: light.downstairs_hallway_lights
+  mode: restart
+- id: back_door_dining_lights_at_night
+  alias: 'Back door opened at night: dining room lights'
+  description: When the back door opens after sunset (sun below the horizon; follows
+    Sydney sunset and daylight saving automatically), turn the dining room lights
+    on for 2 minutes, then off. Opening the door again restarts the timer. Does nothing
+    in the day, nothing on close, and leaves the lights alone if they were already
+    on.
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.back_door_sensor_contact
+    from: 'off'
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  - condition: template
+    value_template: '{{ is_state(''light.dining_room_lights'', ''off'') or (this.attributes.current
+      | int(0)) > 0 }}'
+  actions:
+  - action: light.turn_on
+    target:
+      entity_id: light.dining_room_lights
+  - delay: 00:02:00
+  - action: light.turn_off
+    target:
+      entity_id: light.dining_room_lights
+  mode: restart

@@ -257,3 +257,33 @@
     target:
       entity_id: light.dining_room_lights
   mode: restart
+- id: seed_light_schedule
+  alias: 'Seed light: on 08:00 to midnight'
+  description: Seed Light plug (Meross, local) is on from 08:00 until midnight and
+    off overnight. Also re-applies the right state when HA starts or the plug comes
+    back after a power cut, so a missed 08:00 or 00:00 never leaves it wrong.
+  triggers:
+  - trigger: time
+    at: 08:00:00
+  - trigger: time
+    at: 00:00:00
+  - trigger: homeassistant
+    event: start
+  - trigger: state
+    entity_id: switch.seed_light
+    from: unavailable
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ now().hour >= 8 }}'
+      sequence:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.seed_light
+    default:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.seed_light
+  mode: restart

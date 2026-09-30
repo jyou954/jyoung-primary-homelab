@@ -24,7 +24,7 @@ Unraid has its own address on VLAN 40 (`10.0.40.5`) and 60 (`10.0.60.5`), servin
 - [x] Blue Iris disk monitoring: `windows_exporter` 0.31.8 in the VM (firewall: only `10.0.3.11`), Prometheus job `blue-iris`, Homepage card (D: free / % used)
 - [x] Grafana: "Windows Exporter Dashboard 2025 (v0.31+ compatible)", ID `23942` (the older 14694 doesn't match current metric names)
 - [x] Grafana admin password changed (old one was in a helper script / chat transcript)
-- [ ] Tablet: check it still loads the dashboard
+- [x] Tablet: check it still loads the dashboard
 - [x] Removed `10.0.40.5` from HA trusted proxies, restarted HA (2026-09-29)
 - Also set VLAN 50 (`10.0.50.5`) and 51 (`10.0.51.5`) to None unless something needs them (security audit 2026-09-28).
 - No router rule needed for WUD → HA MQTT (`10.0.40.7:1883`): LAN → IoT is allowed and replies pass `BLOCK_IN` rule 30. Verified from the PC through the router, 2026-09-28. No HA integration uses Unraid's VLAN IPs.
@@ -39,12 +39,16 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - `eth1`/`eth2` deliberately left out of `admin_protect_local` (physical-only access)
 - [ ] If Blue Iris loses the IoT camera: check `security_vlan_in` rule "Blue Iris to IoT camera" counter (unused until Blue Iris reconnects)
 - [ ] #5 Move IoT gear off the main LAN. One device at a time; check it works in its app before the next.
-  - [x] mDNS repeater `eth3` ↔ `eth3.40` (phones on main LAN can still discover casts/Hue on IoT)
-  - Wi-Fi devices → reconnect to the IoT Wi-Fi (2.4 GHz):
-    - [ ] Meross plug `10.0.3.5` (reset: hold button ~5 s, re-add in Meross app)
-    - [ ] Meross garage opener `10.0.3.17` (same; may fix HA's broken garage entities)
+  - [x] mDNS repeater `eth3` ↔ `eth3.40` (phones on main LAN can still discover casts/Hue on IoT). Only worked after `iot_vlan_local` rule 4 "Accept mDNS" (2026-09-30)
+  - Wi-Fi devices → join **`Indus`** (see `network/wifi-and-iot.md` for the address plan):
+    - [x] Meross Seed Light Plug, Study Air Purifier Plug, Spare Plug and garage opener → Indus, all in HA via Meross LAN (2026-09-30). Reservations `.30`/`.32`/`.33`/`.40`; they move there at their next renewal
+    - [ ] Meross "Hydro Tower Plug" (`…6b:aa`): offline in the Meross account. When it's back: Indus, add to HA, reserve `.34`
     - [ ] FoxESS inverter dongle `10.0.3.201` (FoxCloud app → Wi-Fi configuration; HA uses the cloud, unaffected)
-    - [ ] Chromecast `10.0.3.16`, Chromecast Ultra `10.0.3.252` (Google Home app → Wi-Fi → Forget → set up again)
+    - [x] Chromecast Ultra "Study TV" → `Indus`, reserved `10.0.40.20` (2026-09-30). Casting from Aries works; HA sees it again
+    - [ ] Sony XR-83A90J TV `10.0.3.224` (Google TV): TV settings → Network → Wi-Fi → Indus. Then reserve `10.0.40.21`
+    - [ ] Chromecast `10.0.3.16` "Changhong TV": belongs to someone else's Google Home (shows as a local device, "Request invite"). Find the owner and have them move it to `Indus`, or factory-reset it (hold button ~25 s) and set it up in our home. Skipped for now; reserve `.22` when it moves
+    - [ ] Wall tablet: rejoined the old `Indus IoT`; move it to `Indus`
+    - [ ] Then let friends on Gemini (guest Wi-Fi, VLAN 80) cast: router rule Gemini → the Chromecast/TV reservations only on TCP 8008, 8009, 8443, add `eth3.80` to the mDNS repeater (and allow mDNS in `guest_local`). Don't give out the Indus password
     - [ ] Unknown HF-LPT230 Wi-Fi module `10.0.3.226` (MAC `e8:fd:f8…`): identify via http://10.0.3.226 (often admin/admin)
   - Wired devices → EdgeSwitch port VLAN untagged + PVID:
     - [ ] Hue bridge `10.0.3.60` → VLAN 40. First reserve `10.0.40.60` (router DHCP IoT static mapping, MAC `00:17:88:2d:7b:2e`). After: check HA Hue integration, delete `BLOCK_IN` "Allow Hue Hub".
@@ -54,6 +58,16 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [ ] Remove router user `claude` when network work is done: `configure ; delete system login user claude ; commit ; save`. Its key has **no `from=` limit** (EdgeOS rejects quotes), so don't leave it longer than needed.
 - [x] Router forwards `*.int.jyoung-primary.com` to Technitium; removed its wrong `unraid-int-ca → 10.0.3.11` host entry (2026-09-29)
 - [x] Unraid: Tailscale DNS takeover off; host + containers resolve internet names again (had been broken since the VLAN change)
+
+## Wi-Fi and IoT (see `network/wifi-and-iot.md`)
+- [x] UniFi: old controller lost; both AC Lites reset and adopted on the Unraid controller, firmware 6.8.2, reserved `10.0.3.41`/`.42`. Aries, Indus IoT, Indus, Gemini recreated (2026-09-30)
+- [x] IoT DHCP pool moved to `.100`–`.254`; `.2`–`.99` reservations only, in blocks
+- [x] LG TV: tracking domains blocked on the router + its DNS forced through the router (NAT 4010); Live Plus etc. off on the TV
+- [ ] In a few days: check `/var/log/dnsmasq.log` for new LG tracking domains, and that the TV's apps still work
+- [ ] Fornax (parents, VLAN 20): router VLAN + DHCP + firewall (internet; HA, Blue Iris via Traefik, casting, printer; nothing else), VLAN 20 tagged on es48 0/51, 0/52, es16 0/17, 0/13, 0/15, then enable the Fornax Wi-Fi. The UniFi network exists already. Mind the ~4 networks per band limit
+- [ ] Delete the `Indus IoT` Wi-Fi once UniFi shows 0 clients on it
+- [ ] Xiaomi gateway `10.0.40.3` renews its DHCP lease every 1–2 minutes: find out why
+- [ ] Main LAN: same pool split as IoT (reservations below `.100`, automatic above)
 
 ## Switches (see `network/switch-ports.md`)
 - [x] Port names set and saved on `jy-nw-es16` and `jy-nw-es48` (2026-09-28)
@@ -66,7 +80,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Immich v2 → v3.2.2 (2026-09-28). Migrations OK, 12983 assets unchanged. Pre-upgrade dump: `/mnt/user/appdata/immich/immich-db-before-v3-20260928.sql.gz`; old `.env` at `.env.bak-20260928`
 - [x] iPhone (`10.0.3.236`, "Jareds-iPhone") trusts the internal root CA (`root-ca-01 Root CA`, SHA-256 `BF:35:1A:72…00:2F:34:B5`); Immich app uses `https://immich.int.jyoung-primary.com`
 - [x] Tailscale (2026-09-29): Unraid advertises only `10.0.3.11/32` (approved; was 10.0.10–70.0/24), Tailscale SSH off, stale devices removed (truenas-scale, workstation, jareds-macbook-pro). Split DNS `int.jyoung-primary.com → 10.0.3.11` gives every `*.int` site from away
-- [ ] iPhone: Tailscale app shows offline since mid-August; open it and connect (log in again if asked), then test Immich with Wi-Fi off
+- [x] iPhone: Tailscale connected and Immich tested away from home (2026-09-30)
 - [x] Immich iPhone app works (at home)
 - [ ] Immich: optionally optionally re-run Metadata Extraction (Administration → Jobs) so older videos get the new streaming
 - [x] Traefik v3.7, Semaphore v2.19.14, Gotenberg 8.37, BookStack DB 11.4.12 (installed from HA 2026-09-28; compose files updated to match)
@@ -95,21 +109,27 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Key-only SSH on Unraid, NAS, router and HA (2026-09-29); `overlord_ed25519` key in the Bitwarden vault. Router: `set service ssh disable-password-authentication`, key on user `overlord`
 - [ ] MacBook: use the same key via Bitwarden Desktop's SSH agent (or copy it to `~/.ssh`, `chmod 600`)
 - [x] Hardening 2026-09-29: switches HTTP off (HTTPS only, saved) · router: DNS no longer listens on WAN, No-IP DDNS removed, dead name server removed, Management/K8s DHCP ranges start at .2, stale 192.168.0.0/16 pool deleted · Unraid SMB `ntlm auth = ntlmv2-only` (`/boot/config/smb-extra.conf`) · `isoShare` NFS private, `10.0.50.0/24` only · HA trusted proxies = `10.0.3.11` only (restarted)
-- [ ] You: delete the `jyou954.ddns.net` hostname in your No-IP account (it points at a stranger's IP)
+- [x] `jyou954.ddns.net` deleted in No-IP (verified: no longer resolves, 2026-09-30)
 - Decided 2026-09-29, not doing: HA login banning (TOTP covers it; bans would lock out family devices) and Unraid web UI HTTPS (use `https://unraid.int…`; plain `http://10.0.3.11:8180` stays as the way in when Docker/Traefik is down)
 
 ## Home Assistant
 - [x] HA VM crashed 2026-09-29 22:47 (QEMU USB assertion while the ZBT-2 reset; the ZBT-2 was attached twice via a leftover ConBee entry) and couldn't restart because the unplugged ConBee was required. Fixed 2026-09-30: ConBee entries removed from the VM and USB Manager, ZBT-2 matched by ID only and optional, so a missing stick never blocks HA. Backups `/mnt/user/vms/hl-haos-01/*.bak-20260930*`
-- [ ] You: Appdata Backup → immich-machine-learning → exclude `/cache` (named volume `immich_model-cache`, only re-downloadable ML models) to stop the nightly "does NOT exist" email
+- [x] Appdata Backup: `immich-machine-learning` set to Skip (only re-downloadable ML models), stops the nightly "does NOT exist" email (2026-09-30)
 - [x] VM watchdog user script (every 5 min): restarts HA, Blue Iris or the CA VM after a crash, never after a normal shutdown; max 3/day; notifies
 - [x] Zigbee2MQTT on the ZBT-2: fresh network with a regenerated key (2026-09-29; old key had been printed in chat). No devices were ever paired, so nothing to re-pair. Pair new devices via Z2M → Permit join
 - ConBee II: Zigbee-only, **can't do Z-Wave**. Keep as a spare; only set up ZHA on it if a device Z2M doesn't support turns up (use a different channel, e.g. 15 or 20; Z2M is on 25)
 - [ ] Z-Wave (if wanted): buy a Z-Wave stick, e.g. Home Assistant Connect ZWA-2, **ANZ 921.4 MHz version**
 - [x] Save the dashboard / rename / update-flow scripts into this repo (`home-assistant/`)
 
-- [ ] Tablet: kiosk start page by IP (`http://10.0.40.7:8123/tablet-home/home`) so it survives Technitium outages
-- [ ] Tablet: hide Overview in the `younghome` sidebar; kiosk app "reload start URL on idle" (optional: HACS `kiosk-mode` to hide the header)
+- [x] Tablet: kiosk start page by IP, Overview hidden for `younghome`, reload on idle (done by you, 2026-09-30)
 - [x] HA backup encryption key saved in Bitwarden
+- [x] Meross LAN (HACS): plugs and garage opener local in HA; Seed Light schedule (08:00–midnight); Sensors page on both dashboards (2026-09-30)
+- [x] Zigbee: Bedroom Curtain (Zemismart) and IKEA repeater (upstairs hallway) paired (2026-09-30)
+- [ ] Seed Light plug went offline 2026-09-30 ~17:00 (not answering on `.226` or `.30`): check it has power. Then rerun `ha_tablet_dashboard.py` (both targets) so the Bedroom curtain card uses `cover.bedroom_curtain`
+- [ ] Replace batteries: dining dimmer (0%), upstairs hallway switch (0%), front study switch (4%), front yard motion (10%), backyard motion (13%). The Sensors page lists anything under 20%
+- [ ] Garage: the Home page Garage card still uses the old Shelly (`binary_sensor.garage_status`; Shelly integration fails setup). Point it at `cover.garage_door` (Meross) and remove the Shelly
+- [ ] Google voice ("close the bedroom curtain"): HA isn't linked to Google Home. Needs Nabu Casa or a manual Google Assistant setup
+- [ ] Curtains: any other Zemismart motors → pair to Z2M (Learn 3 quick presses)
 
 ## Housekeeping
 - [ ] After the next Unraid reboot: check NUT came up (`upsc -c ups@127.0.0.1` lists `127.0.0.1`)

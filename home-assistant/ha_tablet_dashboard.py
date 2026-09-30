@@ -144,6 +144,8 @@ ROOMS = [
      "backyard", "sensor.backyard_motion_sensor_temperature", "binary_sensor.backyard_motion"),
 ]
 OUTDOOR = {"frontyard", "backyard"}
+# Curtains per room (scene prefix -> covers). Zemismart BCM500DS-TYZ on Zigbee2MQTT.
+ROOM_COVERS = {"bedroom": [("cover.bedroom_curtain", "Curtain")]}
 
 LIGHT_NAMES = {
     "light.bedroom_lamp_2": "Lamp", "light.dining_room_lamp": "Lamp", "light.downstairs_hallway_go": "Hue Go",
@@ -228,7 +230,8 @@ def spacer(height="28px"):
             "styles": {"card": [{"height": height}, {"background": "none"}, {"box-shadow": "none"}, {"border": "none"}]}}
 
 
-NAV_COLORS = {"amber": "#D98200", "purple": "#7E57C2", "green": "#2E7D32", "blue": "#1E6FD9", "slate": "#546E7A"}
+NAV_COLORS = {"amber": "#D98200", "purple": "#7E57C2", "green": "#2E7D32", "blue": "#1E6FD9", "slate": "#546E7A",
+              "teal": "#00897B"}
 
 
 def big_button(title, subtitle, icon, color, path, columns, height, icon_px):
@@ -246,8 +249,9 @@ def big_button(title, subtitle, icon, color, path, columns, height, icon_px):
 
 
 # Home's lights section spans 2 view columns, so its grid is 24 wide: 8 = a third, 6 = a quarter.
+# Tablet has 4 buttons (one row of quarters); Overview adds Admin, so 5 (a row of 3, then 2).
 def nav_card(title, subtitle, icon, color, path):
-    return big_button(title, subtitle, icon, color, path, 6 if ADMIN else 8, "160px", 56)
+    return big_button(title, subtitle, icon, color, path, 8 if ADMIN else 6, "160px", 56)
 
 
 def back_section():
@@ -286,8 +290,9 @@ home_lights = {"type": "grid", "column_span": 2, "cards": [heading("Lights", "md
                   heading("More controls - tap a button", "mdi:gesture-tap-button"),
                   nav_card("Rooms & scenes", "Every light, room by room", "mdi:floor-plan", "amber", "rooms"),
                   nav_card("Music", "Speakers and volume", "mdi:music", "purple", "media"),
-                  nav_card("Solar & battery", "Power and usage", "mdi:solar-power-variant", "green", "energy")]
-               + ([{"type": "conditional", "grid_options": {"columns": 6, "rows": "auto"},
+                  nav_card("Solar & battery", "Power and usage", "mdi:solar-power-variant", "green", "energy"),
+                  nav_card("Sensors", "Doors, motion, temperature", "mdi:motion-sensor", "teal", "sensors")]
+               + ([{"type": "conditional", "grid_options": {"columns": 8, "rows": "auto"},
                     "conditions": [{"condition": "user", "users": ADMIN_IDS}],
                     "card": nav_card("Admin", "Updates, backups, links", "mdi:shield-crown-outline", "slate", "admin")}]
                   if ADMIN else [])}
@@ -323,6 +328,9 @@ for name, icon, group, lights, prefix, temp, motion in ROOMS:
              cols(light_card(group, "All " + name.lower()), 12)]
     if len(lights) > 1:
         cards += [cols(light_card(l, light_name(l, prefix), controls=False), 6) for l in lights]
+    cards += [cols({"type": "custom:mushroom-cover-card", "entity": c, "name": cname, "icon": "mdi:curtains",
+                    "show_buttons_control": True, "show_position_control": True}, 12)
+              for c, cname in ROOM_COVERS.get(prefix, [])]
     scenes = room_scenes(prefix, name)
     if scenes:
         cards.append(cols({"type": "custom:mushroom-chips-card", "alignment": "start", "chips": [
@@ -419,6 +427,80 @@ energy_view = {"title": "Solar", "path": "energy", "icon": "mdi:solar-power-vari
                    ]},
                ]}
 
+# ---------------------------------------------------------------- Sensors view
+# Hue motion sensors: (name, entity prefix). Each has _motion, _temperature, _illuminance and _battery.
+MOTION_SENSORS = [("Stairs", "stair_motion_sensor"),
+                  ("Downstairs hallway", "downstairs_hallway_motion_sensor"),
+                  ("Upstairs hallway", "upstairs_hallway_motion_sensor"),
+                  ("Front yard", "frontyard_motion_sensor"),
+                  ("Backyard", "backyard_motion_sensor")]
+# Meross plugs (local, Meross LAN): (name, entity prefix, icon)
+PLUGS = [("Seed light", "seed_light", "mdi:sprout"), ("Study air purifier", "study_air_purifier", "mdi:air-purifier")]
+# Every battery sensor that is reporting, lowest first when the page is built (FoxESS min-charge settings excluded).
+BATTERIES = sorted((eid for eid, s in STATES.items()
+                    if eid.startswith("sensor.") and s["attributes"].get("device_class") == "battery"
+                    and s["attributes"].get("unit_of_measurement") == "%" and s["state"] not in ("unavailable", "unknown")
+                    and not eid.startswith(("sensor.jareds_iphone", "sensor.foxess"))),
+                   key=lambda e: float(STATES[e]["state"]))
+
+# Live list (not fixed at build time) of batteries under 20%. Dashboards render templates in strict mode, so
+# attributes are read with .get() (a missing device_class would otherwise blank the card).
+LOW_BATTERY_MD = (
+    "{% set ns = namespace(out=[]) %}{% for s in states.sensor %}"
+    "{% if s.attributes.get('device_class') == 'battery' and s.state | is_number"
+    " and 'jareds_iphone' not in s.entity_id and 'foxess' not in s.entity_id and s.state | float < 20 %}"
+    "{% set ns.out = ns.out + ['- **' ~ s.name ~ '**: ' ~ s.state ~ '%'] %}{% endif %}"
+    "{% endfor %}{{ ns.out | join('\\n') if ns.out else 'All batteries above 20%.' }}")
+
+
+def sensor_card(entity, name, icon, color=None, tap=None):
+    c = {"type": "custom:mushroom-entity-card", "entity": entity, "name": name, "icon": icon}
+    if color:
+        c["icon_color"] = color
+    if tap:
+        c["tap_action"] = tap
+    return cols(c, 6)
+
+
+# The garage opener only shows its state here; on the tablet a tap does nothing, so it can't be opened by accident.
+garage_tap = None if ADMIN else {"action": "none"}
+sensors_view = {"title": "Sensors", "path": "sensors", "icon": "mdi:motion-sensor", "type": "sections", "max_columns": 3,
+                "sections": [
+                    back_section(),
+                    {"type": "grid", "cards": [
+                        heading("Doors", "mdi:door"),
+                        sensor_card("binary_sensor.front_door_sensor_contact", "Front door", "mdi:door", "blue"),
+                        sensor_card("binary_sensor.back_door_sensor_contact", "Back door", "mdi:door", "blue"),
+                        sensor_card("cover.garage_door", "Garage", "mdi:garage-variant", "blue", garage_tap),
+                        sensor_card("binary_sensor.front_door_bell_human", "Person at door", "mdi:account-eye", "blue"),
+                        heading("Plugs", "mdi:power-socket-au"),
+                    ] + [c for name, p, icon in PLUGS for c in (
+                        sensor_card("switch." + p, name, icon, "green", {"action": "toggle"}),
+                        sensor_card("sensor.%s_power" % p, name + " power", "mdi:flash", "amber"))] + [
+                        cols({"type": "statistics-graph", "chart_type": "bar", "period": "day", "days_to_show": 7,
+                              "stat_types": ["change"], "title": "Energy per day (7 days)",
+                              "entities": [{"entity": "sensor.%s_energy" % p, "name": name} for name, p, _ in PLUGS]},
+                             12),
+                    ]},
+                    {"type": "grid", "cards": [
+                        heading("Motion", "mdi:motion-sensor")]
+                        + [sensor_card("binary_sensor.%s_motion" % p, name, "mdi:motion-sensor", "orange")
+                           for name, p in MOTION_SENSORS]
+                        + [heading("Temperature", "mdi:thermometer")]
+                        + [sensor_card("sensor.%s_temperature" % p, name, "mdi:thermometer", "red")
+                           for name, p in MOTION_SENSORS]
+                        + [cols({"type": "history-graph", "hours_to_show": 24, "title": "Last 24 hours", "entities": [
+                            {"entity": "sensor.%s_temperature" % p, "name": name} for name, p in MOTION_SENSORS]}, 12)]},
+                    {"type": "grid", "cards": [
+                        heading("Light level", "mdi:brightness-5")]
+                        + [sensor_card("sensor.%s_illuminance" % p, name, "mdi:brightness-5", "yellow")
+                           for name, p in MOTION_SENSORS]
+                        + [heading("Batteries", "mdi:battery-alert-variant-outline"),
+                           cols({"type": "markdown", "content": LOW_BATTERY_MD}, 12),
+                           cols({"type": "entities", "title": "All batteries (lowest first)",
+                                 "entities": BATTERIES}, 12)]},
+                ]}
+
 # ---------------------------------------------------------------- Admin view (Overview only)
 
 
@@ -511,7 +593,7 @@ admin_view = {"title": "Admin", "path": "admin", "icon": "mdi:shield-crown-outli
     ]},
 ]}
 
-views = [home_view, rooms_view, media_view, energy_view] + ([admin_view] if ADMIN else [])
+views = [home_view, rooms_view, media_view, energy_view, sensors_view] + ([admin_view] if ADMIN else [])
 CONFIG = {"title": "Home" if ADMIN else "Tablet", "views": views}
 
 # ---------------------------------------------------------------- validate

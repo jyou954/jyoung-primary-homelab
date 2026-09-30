@@ -64,7 +64,8 @@ Make firewall changes in the EdgeRouter **web UI**: scripted CLI commits fail on
 - [x] IoT DHCP pool moved to `.100`–`.254`; `.2`–`.99` reservations only, in blocks
 - [x] LG TV: tracking domains blocked on the router + its DNS forced through the router (NAT 4010); Live Plus etc. off on the TV
 - [ ] In a few days: check `/var/log/dnsmasq.log` for new LG tracking domains, and that the TV's apps still work
-- [ ] Fornax (parents, VLAN 20): router VLAN + DHCP + firewall (internet; HA, Blue Iris via Traefik, casting, printer; nothing else), VLAN 20 tagged on es48 0/51, 0/52, es16 0/17, 0/13, 0/15, then enable the Fornax Wi-Fi. The UniFi network exists already. Mind the ~4 networks per band limit
+- [x] Fornax (parents, VLAN 20) groundwork: router VLAN, DHCP, `family_in`/`family_local` firewall, mDNS repeater, VLAN 20 on both switches (2026-09-30)
+- [ ] Fornax switch-on (after Indus IoT is deleted, because of the ~4 networks per band limit): create the Fornax Wi-Fi in UniFi, root CA on the parents' phones, test what's reachable
 - [ ] Delete the `Indus IoT` Wi-Fi once UniFi shows 0 clients on it
 - [ ] Xiaomi gateway `10.0.40.3` renews its DHCP lease every 1–2 minutes: find out why
 - [ ] Main LAN: same pool split as IoT (reservations below `.100`, automatic above)

@@ -24,7 +24,7 @@ Only the Wi-Fi name is visible outside; the network names inside UniFi and the r
 | Indus IoT | Indus | 40 | WPA2, PMF off, band steering off, BSS transition off | the IoT devices that were joined before 2026-09-30 (old password, kept so they didn't all need re-joining) |
 | Indus | Indus | 40 | same as Indus IoT, new password | where IoT devices go from now on |
 | Gemini | Gemini | 80 (guests) | WPA2, client isolation on | guests: internet only |
-| Fornax (planned) | Fornax | 20 | not created yet: needs router VLAN, DHCP, firewall and switch tagging first | parents: internet plus HA, cameras, casting, printer |
+| Fornax (not broadcast yet) | Fornax | 20 (`10.0.20.0/24`) | router, DHCP, firewall and switches ready (2026-09-30); create the Wi-Fi once Indus IoT is gone | parents: internet plus HA, cameras, casting, printer |
 
 - **Indus IoT** is being phased out: move devices to **Indus** when they are re-paired anyway. Delete it once UniFi shows 0 clients on it.
 - **Wi-Fi names are case- and space-sensitive.** The IoT network was first recreated as "Indus" instead of "Indus IoT" and no IoT device reconnected until the exact name was restored.
@@ -51,6 +51,18 @@ DHCP pool is `10.0.40.100`–`.254` (since 2026-09-30). `.2`–`.99` is for rese
 | Legacy | `.150` | Shelly 2.5 garage opener (offline) | `4c:75:25:32:fb:23` |
 
 Devices found by name (Google Homes, Nest Hubs, phones) stay on the automatic pool. Reserve an address only when something points at the IP (a firewall rule, an integration, a bookmark).
+
+## Fornax VLAN 20 (family)
+- Router `eth3.20` `10.0.20.1/24`, DHCP `.100`–`.254` (DNS = router, so `*.int` resolves), in the mDNS repeater.
+- `family_in` (default accept = internet): related/established; HA `10.0.40.7:8123`; Traefik `10.0.3.11:443` (HA, Blue Iris, Immich via `*.int`); casting to `10.0.40.0/24` TCP `8008-8009,8443,32000-32999`; printer `10.0.3.15` TCP `631,9100`; reject `PROTECT_NETWORKS`.
+- `family_local` (default drop): related/established, DNS, DHCP, NTP, ping, mDNS.
+- Switches: VLAN 20 "Fornax Family VLAN" in the VLAN database on both; trunk ports carry it (es48 0/51, 0/52, es16 0/17, 0/13, 0/15).
+- Traefik also serves the admin sites (Unraid, Grafana, ...), which still ask for their own logins. Optional: a Traefik IP allow-list to hide them from `10.0.20.0/24`.
+- To switch on: create the Fornax Wi-Fi in UniFi (network Fornax, WPA2), install the internal root CA on the parents' phones, test HA/Blue Iris work and Unraid/NAS/router are blocked.
+
+## EdgeRouter scripting limits (learned 2026-09-30)
+- Scripted commits that create or change firewall rule sets fail (`iptables-restore: line 2 failed`, "Unexpected static status", or `group [...] is of type [Invalid]`), also with `sg vyattacfg`. Do firewall rule sets in the web UI. Attaching an existing rule set to an interface by script works.
+- A failed commit is **not all-or-nothing**: the parts that succeed stay applied, and `save` then writes them. A half-created VLAN left an orphaned kernel device (`RTNETLINK answers: File exists` on the next try); `sudo ip link delete eth3.<vlan>` cleared it. Check with `show configuration commands` after any failure.
 
 ## Router rules added 2026-09-30
 - **`iot_vlan_local` rule 4 "Accept mDNS"**: UDP 5353 to `224.0.0.251`. Without it the mDNS repeater (`eth3` ↔ `eth3.40`) never heard IoT devices, so phones on Aries couldn't find Chromecasts on IoT. Added in the web UI, because scripted firewall commits fail on this router.

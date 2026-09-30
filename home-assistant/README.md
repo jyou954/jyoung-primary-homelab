@@ -36,6 +36,7 @@ On Windows PowerShell use `cmd /c "ssh ... python3 - < script.py"` (PowerShell h
 - **Other Zigbee devices** (Z2M):
   - **Bedroom Curtain** `cover.bedroom_curtain`: Zemismart BCM500DS-TYZ (`TS0601_cover_1`, `0x04cd15fffe396919`), area Bedroom, mains powered (acts as a router). Pairing: press **Learn 3 times quickly** until the light flashes; holding Learn only jogs the motor, and more than 3 presses starts other functions. Named "Bedroom Curtain" so Google voice commands are short.
   - **Zigbee Repeater Upstairs Hallway**: IKEA TRADFRI E1746 (`0x842e14fffe768988`).
+  - **Zigbee Repeater Living Room**: IKEA TRADFRI E1746 (`0x842e14fffe779592`).
 - **Meross** (HACS Meross LAN, local HTTP): Seed Light Plug `switch.seed_light`, Study Air Purifier Plug `switch.study_air_purifier`, Spare Plug `switch.spare_plug` (all MSS305 with power and energy sensors), garage opener `cover.garage_door` (MSG100). The Meross cloud profile only supplies the device keys (password not saved, cloud MQTT publish off). To add a device: power-cycle it, then Discovered → Add (the key fills itself in). Adding by IP asks for the Meross login again. Addresses: see `network/wifi-and-iot.md`.
 - **Seed light** automation: on 08:00 to midnight, and re-applies the right state after an HA restart or when the plug comes back online.
 - **LG TV** `media_player.study_lg_tv` (LG webOS integration, local). Shows unavailable while the TV is off.

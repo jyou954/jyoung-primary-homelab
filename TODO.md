@@ -124,7 +124,7 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [x] Tablet: kiosk start page by IP, Overview hidden for `younghome`, reload on idle (done by you, 2026-09-30)
 - [x] HA backup encryption key saved in Bitwarden
 - [x] Meross LAN (HACS): plugs and garage opener local in HA; Seed Light schedule (08:00–midnight); Sensors page on both dashboards (2026-09-30)
-- [x] Zigbee: Bedroom Curtain (Zemismart) and IKEA repeater (upstairs hallway) paired (2026-09-30)
+- [x] Zigbee: Bedroom Curtain (Zemismart) and IKEA repeaters (upstairs hallway, living room) paired (2026-09-30)
 - [ ] Seed Light plug went offline 2026-09-30 ~17:00 (not answering on `.226` or `.30`): check it has power. Then rerun `ha_tablet_dashboard.py` (both targets) so the Bedroom curtain card uses `cover.bedroom_curtain`
 - [ ] Replace batteries: dining dimmer (0%), upstairs hallway switch (0%), front study switch (4%), front yard motion (10%), backyard motion (13%). The Sensors page lists anything under 20%
 - [ ] Garage: the Home page Garage card still uses the old Shelly (`binary_sensor.garage_status`; Shelly integration fails setup). Point it at `cover.garage_door` (Meross) and remove the Shelly

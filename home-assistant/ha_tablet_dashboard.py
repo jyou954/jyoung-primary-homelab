@@ -259,8 +259,8 @@ def nav_card(title, subtitle, icon, color, path):
     return big_button(title, subtitle, icon, color, path, 8 if ADMIN else 6, "160px", 56)
 
 
-def back_section():
-    card = big_button("Back to Home", "", "mdi:arrow-left-circle", "blue", "home", "full", "84px", 44)
+def back_section(title="Back to Home", path="home"):
+    card = big_button(title, "", "mdi:arrow-left-circle", "blue", path, "full", "84px", 44)
     card["show_label"] = False
     card["styles"]["grid"] = [{"grid-template-areas": '"i n"'}, {"grid-template-columns": "48px auto"},
                               {"justify-content": "center"}, {"align-items": "center"}, {"column-gap": "14px"}]
@@ -326,26 +326,92 @@ home_side = {"type": "grid", "cards": [
 home_view = {"title": "Home", "path": "home", "icon": "mdi:home", "type": "sections", "max_columns": 3,
              "sections": [home_header, home_lights, home_side]}
 
-# ---------------------------------------------------------------- Rooms view
-room_sections = []
-for name, icon, group, lights, prefix, temp, motion in ROOMS:
-    cards = [heading(name, icon, [b for b in (temp, motion) if b])]
-    if group:
-        cards.append(cols(light_card(group, "All " + name.lower()), 12))
-    if len(lights) > 1:
-        cards += [cols(light_card(l, light_name(l, prefix), controls=False), 6) for l in lights]
-    cards += [cols({"type": "custom:mushroom-cover-card", "entity": c, "name": cname, "icon": "mdi:curtains",
-                    "show_buttons_control": True, "show_position_control": True}, 12)
-              for c, cname in ROOM_COVERS.get(prefix, [])]
-    scenes = room_scenes(prefix, name)
-    if scenes:
-        cards.append(cols({"type": "custom:mushroom-chips-card", "alignment": "start", "chips": [
-            {"type": "template", "icon": ic, "icon_color": "amber", "content": label,
-             "tap_action": action("scene.turn_on", eid)} for eid, label, ic in scenes]}, 12))
-    room_sections.append({"type": "grid", "cards": cards})
+# ---------------------------------------------------------------- Rooms view + one subview per room
+# Rooms is a grid of big room buttons; each opens that room's own page (a subview: no tab in the top bar).
+MAIN_SCENES = {"bright", "relax", "dimmed", "nightlight"}
 
+
+def scene_chips(scenes):
+    return cols({"type": "custom:mushroom-chips-card", "alignment": "start", "chips": [
+        {"type": "template", "icon": ic, "icon_color": "amber", "content": label,
+         "tap_action": action("scene.turn_on", eid)} for eid, label, ic in scenes]}, "full")
+
+
+def room_path(prefix):
+    return "room-" + prefix.replace("_", "-")
+
+
+def room_button(name, icon, lights, covers, prefix, temp):
+    """Room tile: amber while any light is on; the label says what's on, the temperature and curtain state."""
+    watch = lights + [c for c, _ in covers] + ([temp] if temp else [])
+    js = ("const L = %s; const C = %s; const T = %s;"
+          "const on = L.filter(e => states[e] && states[e].state === 'on').length;"
+          "const p = [];"
+          "if (L.length) p.push(on ? on + (on === 1 ? ' light on' : ' lights on') : 'Lights off');"
+          "if (C.length) { const o = C.filter(e => states[e] && states[e].state !== 'closed').length;"
+          "  p.push(o ? 'Curtains open' : 'Curtains closed'); }"
+          "if (T && states[T]) p.push(states[T].state + ' °C');"
+          "return p.join(' · ');") % (json.dumps(lights), json.dumps([c for c, _ in covers][:1]), json.dumps(temp))
+    bg = ("[[[ const L = %s; return L.some(e => states[e] && states[e].state === 'on') ? '%s' : '%s'; ]]]"
+          % (json.dumps(lights), NAV_COLORS["amber"], NAV_COLORS["slate"]))
+    card = big_button(name, "", icon, "slate", room_path(prefix), 12, "130px", 44)
+    card["label"] = "[[[ " + js + " ]]]"
+    card["triggers_update"] = watch
+    card["styles"]["card"][0] = {"background-color": bg}
+    return card
+
+
+room_views, room_buttons = [], []
+for name, icon, group, lights, prefix, temp, motion in ROOMS:
+    covers = ROOM_COVERS.get(prefix, [])
+    room_buttons.append(room_button(name, icon, lights, covers, prefix, temp))
+    sections = [back_section("Back to Rooms", "rooms")]
+    if group:
+        light_cards = [heading(name + " lights", icon, [b for b in (temp, motion) if b]),
+                       cols(light_card(group, "All " + name.lower()), "full")]
+        if len(lights) > 1:
+            light_cards += [cols(light_card(l, light_name(l, prefix)), 12) for l in lights]
+        sections.append({"type": "grid", "cards": light_cards})
+    side = []
+    if covers:
+        side += [heading("Curtains", "mdi:curtains")] + [
+            cols({"type": "custom:mushroom-cover-card", "entity": c, "name": cname, "icon": "mdi:curtains",
+                  "show_buttons_control": True, "show_position_control": True}, "full") for c, cname in covers]
+    scenes = room_scenes(prefix, name)
+    main = [s for s in scenes if s[0].rsplit("_", 1)[-1] in MAIN_SCENES]
+    more = [s for s in scenes if s not in main]
+    if main:
+        side += [heading("Scenes", "mdi:palette"), scene_chips(main)]
+    if more:
+        side += [{"type": "heading", "heading": "More scenes", "heading_style": "subtitle"}, scene_chips(more)]
+    if side:
+        sections.append({"type": "grid", "cards": side})
+    room_views.append({"title": name, "path": room_path(prefix), "icon": icon, "subview": True,
+                       "back_path": "/%s/rooms" % URL_PATH, "type": "sections", "max_columns": 2,
+                       "sections": sections})
+
+# Room buttons grouped by HA floor (Settings > Areas > Floors), outdoor rooms last, alphabetical within each.
+_floors = {f["floor_id"]: f["name"] for f in call(type="config/floor_registry/list")}
+AREA_FLOOR = {a["area_id"]: _floors.get(a.get("floor_id")) for a in call(type="config/area_registry/list")}
+FLOOR_ORDER = [("Ground Floor", "mdi:home-floor-g"), ("Upstairs", "mdi:home-floor-1"),
+               ("Outside", "mdi:tree-outline"), ("Other", "mdi:home-outline")]
+
+
+def room_floor(prefix):
+    return "Outside" if prefix in OUTDOOR else (AREA_FLOOR.get(prefix) or "Other")
+
+
+by_floor = {}
+for r, button in zip(ROOMS, room_buttons):
+    by_floor.setdefault(room_floor(r[4]), []).append((r[0], button))
+floor_cards = []
+for floor, ficon in FLOOR_ORDER:
+    if floor in by_floor:
+        floor_cards += [heading(floor, ficon)] + [b for _, b in sorted(by_floor[floor])]
+
+# Rooms section spans all 3 view columns (36 wide): 12 = three room buttons per row.
 rooms_view = {"title": "Rooms", "path": "rooms", "icon": "mdi:floor-plan", "type": "sections", "max_columns": 3,
-              "sections": [back_section()] + room_sections}
+              "sections": [back_section(), {"type": "grid", "column_span": 3, "cards": floor_cards}]}
 
 # ---------------------------------------------------------------- Media view
 # Groups are Cast groups (they use port 32xxx instead of 8009 in the Cast log).
@@ -599,7 +665,7 @@ admin_view = {"title": "Admin", "path": "admin", "icon": "mdi:shield-crown-outli
     ]},
 ]}
 
-views = [home_view, rooms_view, media_view, energy_view, sensors_view] + ([admin_view] if ADMIN else [])
+views = [home_view, rooms_view, media_view, energy_view, sensors_view] + ([admin_view] if ADMIN else []) + room_views
 CONFIG = {"title": "Home" if ADMIN else "Tablet", "views": views}
 
 # ---------------------------------------------------------------- validate
@@ -647,4 +713,4 @@ else:
              require_admin=False, show_in_sidebar=True, mode="storage")
         print("created dashboard /%s" % URL_PATH)
     call(type="lovelace/config/save", url_path=URL_PATH, config=CONFIG)
-print("saved: %d views, %d room sections, %d speakers" % (len(CONFIG["views"]), len(room_sections), len(PLAYERS)))
+print("saved: %d views (%d room pages), %d speakers" % (len(CONFIG["views"]), len(room_views), len(PLAYERS)))

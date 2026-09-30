@@ -142,10 +142,15 @@ ROOMS = [
      ["light.backyard_lily_%d" % i for i in range(1, 8)]
      + ["light.backyard_pedestal_1", "light.backyard_pedestal_2", "light.bamboo_light", "light.planter_1", "light.planter_2"],
      "backyard", "sensor.backyard_motion_sensor_temperature", "binary_sensor.backyard_motion"),
+    # No lights, only curtains (see ROOM_COVERS).
+    ("Second Bedroom", "mdi:bed-outline", None, [], "second_bedroom", None, None),
 ]
 OUTDOOR = {"frontyard", "backyard"}
 # Curtains per room (scene prefix -> covers). Zemismart BCM500DS-TYZ on Zigbee2MQTT.
-ROOM_COVERS = {"bedroom": [("cover.bedroom_curtain", "Curtain")]}
+ROOM_COVERS = {"bedroom": [("cover.bedroom_curtain", "Curtain")],
+               "second_bedroom": [("cover.second_bedroom_curtains", "Both curtains"),
+                                  ("cover.second_bedroom_blackout_curtain", "Blackout"),
+                                  ("cover.second_bedroom_privacy_curtain", "Privacy screen")]}
 
 LIGHT_NAMES = {
     "light.bedroom_lamp_2": "Lamp", "light.dining_room_lamp": "Lamp", "light.downstairs_hallway_go": "Hue Go",
@@ -220,7 +225,7 @@ def light_card(entity, name, controls=True):
     return c
 
 
-GROUPS = [r[2] for r in ROOMS]
+GROUPS = [r[2] for r in ROOMS if r[2]]
 
 
 def spacer(height="28px"):
@@ -285,7 +290,7 @@ home_header = {"type": "grid", "column_span": 3, "cards": [
 ]}
 
 home_lights = {"type": "grid", "column_span": 2, "cards": [heading("Lights", "mdi:lightbulb-group")]
-               + [cols(light_card(r[2], r[0]), 6) for r in ROOMS]
+               + [cols(light_card(r[2], r[0]), 6) for r in ROOMS if r[2]]
                + [spacer(),
                   heading("More controls - tap a button", "mdi:gesture-tap-button"),
                   nav_card("Rooms & scenes", "Every light, room by room", "mdi:floor-plan", "amber", "rooms"),
@@ -324,8 +329,9 @@ home_view = {"title": "Home", "path": "home", "icon": "mdi:home", "type": "secti
 # ---------------------------------------------------------------- Rooms view
 room_sections = []
 for name, icon, group, lights, prefix, temp, motion in ROOMS:
-    cards = [heading(name, icon, [b for b in (temp, motion) if b]),
-             cols(light_card(group, "All " + name.lower()), 12)]
+    cards = [heading(name, icon, [b for b in (temp, motion) if b])]
+    if group:
+        cards.append(cols(light_card(group, "All " + name.lower()), 12))
     if len(lights) > 1:
         cards += [cols(light_card(l, light_name(l, prefix), controls=False), 6) for l in lights]
     cards += [cols({"type": "custom:mushroom-cover-card", "entity": c, "name": cname, "icon": "mdi:curtains",

@@ -130,6 +130,8 @@ Pending updates show in HA (Settings → Updates) and in WUD. Read release notes
 - [ ] Replace batteries: dining dimmer (0%), upstairs hallway switch (0%), front study switch (4%), front yard motion (10%), backyard motion (13%). The Sensors page lists anything under 20%
 - [ ] Garage: the Home page Garage card still uses the old Shelly (`binary_sensor.garage_status`; Shelly integration fails setup). Point it at `cover.garage_door` (Meross) and remove the Shelly
 - [ ] Google voice ("close the bedroom curtain"): HA isn't linked to Google Home. Needs Nabu Casa or a manual Google Assistant setup
+- [x] Second Bedroom curtains (blackout + privacy screen) paired, grouped as `cover.second_bedroom_curtains`, on the Rooms page (2026-09-30)
+- [ ] Second Bedroom curtains: test each motor (direction, end positions) and confirm the blackout/privacy names match the physical curtains
 - [ ] Curtains: any other Zemismart motors → pair to Z2M (Learn 3 quick presses)
 
 ## Housekeeping
